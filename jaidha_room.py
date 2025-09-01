@@ -147,11 +147,6 @@ async def main():
         num_variations=3
     )
     
-    # Save grid
-    if variations:
-        grid_path = f"{output_dir}/jaidha_living_room_variations.png"
-        designer.save_grid(variations, grid_path)
-    
     print(f"\n✅ Generated {len(variations)} variations!")
 
 if __name__ == "__main__":

@@ -184,33 +184,4 @@ This is variation {variation_index + 1}. Make it unique and distinctive.
             print(f"   Estimated total cost: ${total_cost:.6f}")
             print(f"   Cost per variation: ${total_cost / len(generated_images):.6f}")
         
-        return generated_images, output_dir
-    
-    def save_grid(self, images: List[Image.Image], output_path: str):
-        """Save all variations in a grid layout"""
-        if not images:
-            print("No images to save")
-            return
-        
-        # Create a simple grid
-        cols = min(3, len(images))
-        rows = (len(images) + cols - 1) // cols
-        
-        # Calculate grid size
-        img_width, img_height = images[0].size
-        grid_width = cols * img_width
-        grid_height = rows * img_height
-        
-        # Create grid image
-        grid_image = Image.new('RGB', (grid_width, grid_height))
-        
-        # Place images in grid
-        for i, img in enumerate(images):
-            row = i // cols
-            col = i % cols
-            x = col * img_width
-            y = row * img_height
-            grid_image.paste(img, (x, y))
-        
-        grid_image.save(output_path)
-        print(f"Saved grid of all variations to {output_path}") 
+        return generated_images, output_dir 

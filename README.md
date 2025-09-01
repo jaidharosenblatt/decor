@@ -60,7 +60,6 @@ That's it! The script will:
 - Generate 3 design variations in parallel
 - Save them to a timestamped folder in `output/`
 - Show usage costs and token counts
-- Create a grid overview of all variations
 
 ### Output Structure
 
@@ -71,8 +70,7 @@ output/
 └── 2025-08-31_23-42-40/
     ├── design_variation_01.png
     ├── design_variation_02.png
-    ├── design_variation_03.png
-    └── jaidha_living_room_variations.png
+    └── design_variation_03.png
 ```
 
 ### Design Specifications
@@ -135,8 +133,7 @@ decor/
     └── 2025-08-31_23-42-40/
         ├── design_variation_01.png
         ├── design_variation_02.png
-        ├── design_variation_03.png
-        └── jaidha_living_room_variations.png
+        └── design_variation_03.png
 ```
 
 ## Customization
