@@ -27,21 +27,19 @@ LIGHTING_PRESETS = [
     Primary light source is daylight; windows are bright but not blown out.
     Track lights 10%, floor lamp OFF. White balance ~4500K.
     Exposure naturalistic for interiors; colors remain true.""",
-
-    """TIME OF DAY: NIGHT 19:00 (7pm). Exterior is absolute black; windows read as black mirrors with faint interior reflections only.
-    INTERIOR LIGHTS ON: track lights 20% @ 3000K; floor lamp ON 70% @ 2700K; stair sconce ON 40% @ 3000K.
-    White balance ~3000K (no blue cast). Expose for interior so lamp shades keep texture, midtones preserved.
-    Natural falloff with gentle shadows; warm highlights on leather/wood; slight reflection on fireplace glass.
-    NO daylight/twilight/moonlight or exterior light sources."""
 ]
+
+ACCENT_WALL_INSTRUCTIONS = """
+Should be a unified color across fireplace bump-out and extend all the way to the staircase wall.
+"""
 
 # FINALISTS — unified color across fireplace bump-out and flanking planes.
 WALL_TREATMENT_PRESETS = [
-    "Light mushroom greige accent — warm stone taupe that grounds the space without being heavy — balanced against the tan leather and wood tones — works great in both bright and dim lighting — EXTENDS FULLY into stairwell plane — fireplace bump-out SAME COLOR.",
-    "Dusty sage green accent — muted, gray-leaning green with just enough life to add character — ties in beautifully with red/green rugs and mid-century palette — EXTENDS FULLY into stairwell plane — fireplace bump-out SAME COLOR.",
-    "Pale blue-gray accent — soft, airy tone that feels refreshing and modern — provides subtle contrast against tan leather chairs without being overpowering — EXTENDS FULLY into stairwell plane — fireplace bump-out SAME COLOR.",
-    "Light olive accent — earthy but brighter than sage, keeps things grounded yet still adds vibrancy — pairs nicely with wood tones and brass accents in a very mid-century way — EXTENDS FULLY into stairwell plane — fireplace bump-out SAME COLOR.",
-    "Simple crisp white everywhere — clean, timeless option for maximum flexibility with rugs and furniture — makes the space feel open and gallery-like, especially with warm wood and brass accents — fireplace wall and stairwell plane in the same crisp matte white — NO accent color."
+    "Warm terracotta/clay " + ACCENT_WALL_INSTRUCTIONS,
+    "Deep olive green " + ACCENT_WALL_INSTRUCTIONS,
+    "Warm terracotta/clay " + ACCENT_WALL_INSTRUCTIONS,
+    "Beige tan " + ACCENT_WALL_INSTRUCTIONS,
+    "white"
 ]
 
 HARD_CONSTRAINTS = """
