@@ -98,7 +98,7 @@ This is variation {variation_index + 1}. Make it unique and distinctive.
     async def generate_variations(self, 
                                  current_room_paths: List[str],
                                  room_specs: RoomSpecs,
-                                 design_prompt: DesignPrompt,
+                                 design_prompt: DesignPrompt = None,
                                  num_variations: int = 3,
                                  output_dir: str = None) -> tuple[List[Image.Image], str]:
         """Generate multiple design variations"""
@@ -122,7 +122,14 @@ This is variation {variation_index + 1}. Make it unique and distinctive.
         
         # Create tasks for parallel execution
         async def generate_with_usage(i):
-            prompt = self.create_prompt(room_specs, design_prompt, i)
+            # Use dynamic prompt if provided, otherwise use the static one
+            if design_prompt is None:
+                # Import the dynamic prompt function
+                from jaidha_room import create_dynamic_prompt
+                prompt = self.create_prompt(room_specs, create_dynamic_prompt(i), i)
+            else:
+                prompt = self.create_prompt(room_specs, design_prompt, i)
+            
             contents = [prompt] + current_room_images[:3]  # Up to 3 images
             
             response = await self.client.aio.models.generate_content(
