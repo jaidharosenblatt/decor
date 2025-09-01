@@ -85,12 +85,32 @@ This is variation {variation_index + 1}. Make it unique and distinctive.
                 print(f"   Output tokens: {usage.candidates_token_count}")
                 print(f"   Total tokens: {usage.total_token_count}")
                 
-                # Estimate cost
+                # Estimate cost with correct pricing
+                # Input: $0.000075 per 1K tokens
+                # Output: $30 per 1M tokens = $0.03 per 1K tokens (image output tokenized at 1290 tokens per image)
                 input_cost = (usage.prompt_token_count / 1000) * 0.000075
-                output_cost = (usage.candidates_token_count / 1000) * 0.0003
+                
+                # For image generation, use flat 1290 tokens per image output
+                # Check if this is an image generation response
+                has_image_output = False
+                for part in response.candidates[0].content.parts:
+                    if part.inline_data is not None:
+                        has_image_output = True
+                        break
+                
+                if has_image_output:
+                    # Use flat 1290 tokens for image output
+                    # $30 per 1M tokens = $0.03 per 1K tokens
+                    output_cost = (1290 / 1000) * 0.03
+                else:
+                    # Use actual token count for text output
+                    output_cost = (usage.candidates_token_count / 1000) * 0.03
+                
                 total_cost = input_cost + output_cost
                 
                 print(f"   Estimated cost: ${total_cost:.6f}")
+                if has_image_output:
+                    print(f"   (Image output: 1290 tokens flat rate)")
                 
         except Exception as e:
             print(f"Could not log usage info: {e}")
@@ -182,11 +202,20 @@ This is variation {variation_index + 1}. Make it unique and distinctive.
         # Display total usage summary
         total_tokens = total_input_tokens + total_output_tokens
         if total_tokens > 0:
+            # Calculate costs with correct pricing
+            # Input: $0.000075 per 1K tokens
+            # Output: $30 per 1M tokens = $0.03 per 1K tokens (image output tokenized at 1290 tokens per image)
             input_cost = (total_input_tokens / 1000) * 0.000075
-            output_cost = (total_output_tokens / 1000) * 0.0003
+            
+            # For image generation, use flat 1290 tokens per image output
+            # Since we're generating images, use the flat rate for all variations
+            output_cost = (len(generated_images) * 1290 / 1000) * 0.03
+            
             total_cost = input_cost + output_cost
             
             print(f"\n📊 Total Usage Summary:")
+            print(f"   Total input tokens: {total_input_tokens:,}")
+            print(f"   Total output tokens: {len(generated_images) * 1290:,} (1290 per image)")
             print(f"   Total tokens: {total_tokens:,}")
             print(f"   Estimated total cost: ${total_cost:.6f}")
             print(f"   Cost per variation: ${total_cost / len(generated_images):.6f}")
