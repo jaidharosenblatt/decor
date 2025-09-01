@@ -183,6 +183,9 @@ Make this variation {variation_index + 1} of {len(self.style_variations)} with a
                 contents=contents,
             )
             
+            # Log usage information
+            self.log_usage_info(response, variation_index + 1)
+            
             # Extract generated image - following official docs exactly
             for part in response.candidates[0].content.parts:
                 if part.text is not None:
@@ -197,6 +200,47 @@ Make this variation {variation_index + 1} of {len(self.style_variations)} with a
         except Exception as e:
             print(f"Error generating variation {variation_index + 1}: {e}")
             return None
+    
+    def log_usage_info(self, response, variation_num: int):
+        """Log token usage and estimated cost for the API request"""
+        try:
+            if hasattr(response, 'usage_metadata'):
+                usage = response.usage_metadata
+                print(f"\n💰 Usage for variation {variation_num}:")
+                print(f"   Input tokens: {usage.prompt_token_count}")
+                print(f"   Output tokens: {usage.candidates_token_count}")
+                print(f"   Total tokens: {usage.total_token_count}")
+                
+                # Estimate cost (prices as of 2024, may vary)
+                # gemini-2.5-flash-image-preview pricing:
+                # Input: $0.000075 per 1K tokens
+                # Output: $0.0003 per 1K tokens
+                input_cost = (usage.prompt_token_count / 1000) * 0.000075
+                output_cost = (usage.candidates_token_count / 1000) * 0.0003
+                total_cost = input_cost + output_cost
+                
+                print(f"   Estimated cost: ${total_cost:.6f}")
+                print(f"     - Input: ${input_cost:.6f}")
+                print(f"     - Output: ${output_cost:.6f}")
+                
+            elif hasattr(response, 'usage'):
+                # Alternative usage field
+                usage = response.usage
+                print(f"\n💰 Usage for variation {variation_num}:")
+                print(f"   Total tokens: {usage.total_tokens}")
+                print(f"   Estimated cost: ${(usage.total_tokens / 1000) * 0.000375:.6f}")
+                
+        except Exception as e:
+            print(f"Could not log usage info: {e}")
+    
+    def get_total_usage_summary(self, total_tokens: int = 0):
+        """Display total usage summary"""
+        if total_tokens > 0:
+            total_cost = (total_tokens / 1000) * 0.000375  # Average cost per 1K tokens
+            print(f"\n📊 Total Usage Summary:")
+            print(f"   Total tokens used: {total_tokens:,}")
+            print(f"   Estimated total cost: ${total_cost:.6f}")
+            print(f"   Cost per variation: ${total_cost / 3:.6f}")
     
     async def generate_design_variations(self, 
                                  current_room_paths: List[str],
@@ -225,32 +269,73 @@ Make this variation {variation_index + 1} of {len(self.style_variations)} with a
             except Exception as e:
                 print(f"Warning: Could not load image {path}: {e}")
         
-        # Create tasks for parallel execution
-        tasks = []
-        for i in range(num_variations):
-            task = self.generate_design_variation(
-                current_room_images, inspiration_images, room_specs, design_prompt, i
+        # Create tasks for parallel execution with response tracking
+        async def generate_with_usage(i):
+            response = await self.client.aio.models.generate_content(
+                model=self.model,
+                contents=[self.create_variation_prompt("", room_specs, design_prompt, i)] + 
+                        current_room_images[:3] + inspiration_images[:2]
             )
-            tasks.append(task)
+            return i, response
+        
+        tasks = [generate_with_usage(i) for i in range(num_variations)]
         
         # Execute all tasks in parallel
         print("Starting parallel generation...")
         results = await asyncio.gather(*tasks, return_exceptions=True)
         
         generated_images = []
-        for i, result in enumerate(results):
+        total_input_tokens = 0
+        total_output_tokens = 0
+        
+        for result in results:
             if isinstance(result, Exception):
-                print(f"Failed to generate variation {i + 1}: {result}")
-            elif result:
-                generated_images.append(result)
-                # Save each variation as it's generated
-                output_path = f"{output_dir}/design_variation_{i + 1:02d}.png"
-                # Ensure output directory exists
-                os.makedirs(output_dir, exist_ok=True)
-                result.save(output_path)
-                print(f"Saved {output_path}")
+                print(f"Failed to generate variation: {result}")
             else:
-                print(f"Failed to generate variation {i + 1}")
+                i, response = result
+                
+                # Log usage for this variation
+                self.log_usage_info(response, i + 1)
+                
+                # Extract image
+                image = None
+                for part in response.candidates[0].content.parts:
+                    if part.inline_data is not None:
+                        image = Image.open(BytesIO(part.inline_data.data))
+                        break
+                
+                if image:
+                    generated_images.append(image)
+                    # Save each variation as it's generated
+                    output_path = f"{output_dir}/design_variation_{i + 1:02d}.png"
+                    # Ensure output directory exists
+                    os.makedirs(output_dir, exist_ok=True)
+                    image.save(output_path)
+                    print(f"Saved {output_path}")
+                    
+                    # Track total tokens
+                    if hasattr(response, 'usage_metadata'):
+                        usage = response.usage_metadata
+                        total_input_tokens += usage.prompt_token_count
+                        total_output_tokens += usage.candidates_token_count
+                else:
+                    print(f"Failed to generate variation {i + 1}")
+        
+        # Display total usage summary
+        total_tokens = total_input_tokens + total_output_tokens
+        if total_tokens > 0:
+            input_cost = (total_input_tokens / 1000) * 0.000075
+            output_cost = (total_output_tokens / 1000) * 0.0003
+            total_cost = input_cost + output_cost
+            
+            print(f"\n📊 Total Usage Summary:")
+            print(f"   Total input tokens: {total_input_tokens:,}")
+            print(f"   Total output tokens: {total_output_tokens:,}")
+            print(f"   Total tokens: {total_tokens:,}")
+            print(f"   Estimated total cost: ${total_cost:.6f}")
+            print(f"     - Input cost: ${input_cost:.6f}")
+            print(f"     - Output cost: ${output_cost:.6f}")
+            print(f"   Cost per variation: ${total_cost / len(generated_images):.6f}")
         
         return generated_images
     
