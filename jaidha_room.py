@@ -73,18 +73,16 @@ def jaidha_living_room():
     print(f"Inspiration images: {len(inspiration_paths)}")
     print()
     
-    # Generate 2 variations as requested
-    print("Generating 2 design variations for your living room...")
+    # Generate 1 variation as requested
+    print("Generating 1 design variation for your living room...")
     
-    # Combine all images for the generation
-    all_images = current_room_paths + items_paths + inspiration_paths
-    
+    # Start with just text prompt to test API
     variations = designer.generate_design_variations(
-        current_room_paths=all_images,  # Pass all images as current room images
-        inspiration_paths=[],  # Empty since we're including everything above
+        current_room_paths=[],  # Start with no images to test
+        inspiration_paths=[],   # Start with no images to test
         room_specs=room_specs,
         design_prompt=design_prompt,
-        num_variations=2
+        num_variations=1
     )
     
     # Save grid
@@ -92,7 +90,7 @@ def jaidha_living_room():
     
     print(f"\n✅ Generated {len(variations)} variations!")
     print("Check 'jaidha_living_room_variations.png' for the overview")
-    print("Individual files: design_variation_01.png, design_variation_02.png")
+    print("Individual files: design_variation_01.png")
 
 if __name__ == "__main__":
     jaidha_living_room() 

@@ -58,8 +58,8 @@ class InteriorDesigner:
             raise ValueError("GEMINI_API_KEY environment variable is required")
         
         # Configure Gemini client
-        self.client = genai.Client()
-        self.model = "gemini-2.5-flash-image-preview"
+        self.client = genai.Client(api_key=self.api_key)
+        self.model = "gemini-2.5-flash-image-preview"  # Image generation model
         
         # Style variations for generating diverse designs
         self.style_variations = [
@@ -87,6 +87,9 @@ class InteriorDesigner:
         """Load and validate an image"""
         try:
             image = Image.open(image_path)
+            # Convert to RGB if necessary
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
             return image
         except Exception as e:
             raise ValueError(f"Failed to load image {image_path}: {e}")
@@ -162,29 +165,30 @@ Make this variation {variation_index + 1} of {len(self.style_variations)} with a
                 "", room_specs, design_prompt, variation_index
             )
             
-            # Prepare content with images and text
+            # Prepare content with images and text - following official docs exactly
             contents = [prompt]
             
-            # Add current room images (up to 3)
+            # Add current room images (up to 3) - following the Python example format
             for i, img in enumerate(current_room_images[:3]):
                 contents.append(img)
             
-            # Add inspiration images (up to 2)
+            # Add inspiration images (up to 2) - following the Python example format
             for i, img in enumerate(inspiration_images[:2]):
                 contents.append(img)
             
-            # Generate content using Gemini
+            # Generate content using Gemini - following official docs exactly
             response = self.client.models.generate_content(
                 model=self.model,
                 contents=contents,
             )
             
-            # Extract generated image
-            if response.candidates and response.candidates[0].content:
-                for part in response.candidates[0].content.parts:
-                    if hasattr(part, 'inline_data') and part.inline_data:
-                        image_data = base64.b64decode(part.inline_data.data)
-                        return Image.open(BytesIO(image_data))
+            # Extract generated image - following official docs exactly
+            for part in response.candidates[0].content.parts:
+                if part.text is not None:
+                    print(f"Text response: {part.text}")
+                elif part.inline_data is not None:
+                    image = Image.open(BytesIO(part.inline_data.data))
+                    return image
             
             print(f"Warning: No image generated for variation {variation_index + 1}")
             return None
@@ -203,8 +207,21 @@ Make this variation {variation_index + 1} of {len(self.style_variations)} with a
         print(f"Generating {num_variations} design variations...")
         
         # Load images
-        current_room_images = [self.load_image(path) for path in current_room_paths]
-        inspiration_images = [self.load_image(path) for path in inspiration_paths]
+        current_room_images = []
+        for path in current_room_paths:
+            try:
+                img = self.load_image(path)
+                current_room_images.append(img)
+            except Exception as e:
+                print(f"Warning: Could not load image {path}: {e}")
+        
+        inspiration_images = []
+        for path in inspiration_paths:
+            try:
+                img = self.load_image(path)
+                inspiration_images.append(img)
+            except Exception as e:
+                print(f"Warning: Could not load image {path}: {e}")
         
         generated_images = []
         
