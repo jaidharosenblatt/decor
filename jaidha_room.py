@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-Jaidha's Living Room Designer - Finalists w/ Day+Night Alternation
-"""
-
 import glob
 import asyncio
 import random
@@ -27,8 +23,16 @@ RUG_STYLES = [
 
 # Lighting / time-of-day scenes
 LIGHTING_PRESETS = [
-    "TIME OF DAY: Daytime. Soft overcast daylight fills the room. Window view is bright but not blown out. Track lights low, floor lamp off. White balance neutral-cool ~4500K. Keep colors true and airy.",
-    "TIME OF DAY: COMPLETELY DARK NIGHT. All lights OFF. Exterior is pure black — no sky, no light sources visible through windows. Interior is dimly lit ONLY by track lights at 15% capacity. All lamps turned off"
+    """TIME OF DAY: Daytime (soft overcast).
+    Primary light source is daylight; windows are bright but not blown out.
+    Track lights 10%, floor lamp OFF. White balance ~4500K.
+    Exposure naturalistic for interiors; colors remain true.""",
+
+    """TIME OF DAY: NIGHT 19:00 (7pm). Exterior is absolute black; windows read as black mirrors with faint interior reflections only.
+    INTERIOR LIGHTS ON: track lights 20% @ 3000K; floor lamp ON 70% @ 2700K; stair sconce ON 40% @ 3000K.
+    White balance ~3000K (no blue cast). Expose for interior so lamp shades keep texture, midtones preserved.
+    Natural falloff with gentle shadows; warm highlights on leather/wood; slight reflection on fireplace glass.
+    NO daylight/twilight/moonlight or exterior light sources."""
 ]
 
 # FINALISTS — unified color across fireplace bump-out and flanking planes.
@@ -88,8 +92,6 @@ CAMERA VIEWPOINT:
 - Show the back of the grey couch centered in foreground.
 - Fireplace wall centered in background.
 - Same focal length and vantage as source. No wide angle exaggeration.
-- For night scenes: Expose for interior lighting, not exterior — windows should read as dark voids.
-- For day scenes: Naturalistic interior lighting with accurate exposure.
 """
 
 def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: str) -> str:
@@ -131,8 +133,6 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: s
     - Accent wall color must EXTEND FULLY into the staircase wall plane (no sharp cutoff).
     - Fireplace bump-out must be the SAME COLOR as the surrounding accent (no white stripe).
     - Armchairs must be brown/tan leather only. Do not render gray or fabric chairs.
-    - For night scenes: Exterior must be completely black with no visible sky or light sources.
-    - For night scenes: Windows must appear as dark voids with no illumination.
 
     EXACT ROOM DIMENSIONS:
     - Left bay depth 9.75in max
@@ -173,7 +173,6 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: s
     DESIGN INTENT:
     - Quiet, modern, and elevated. Subtle detail over bold patterns.
     - Prioritize negative space. Avoid visual heaviness.
-    - Styling should feel airy and uncluttered in both day and night lighting.
 
     MUST PRESERVE:
     - Existing couch, floors, openings, fireplace, window and door positions.
