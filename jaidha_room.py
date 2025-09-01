@@ -28,15 +28,18 @@ LIGHTING_PRESETS = [
 
 ACCENT_WALL_INSTRUCTIONS = """
 accent wall color that must EXTEND FULLY into the staircase wall plane (no sharp cutoff). Fireplace bump-out must be the SAME COLOR as the surrounding accent (no white stripe).
+Do not paint the right wall 
 
 """
 
 # FINALISTS — unified color across fireplace bump-out and flanking planes.
 WALL_TREATMENT_PRESETS = [
-    "Warm terracotta/clay " + ACCENT_WALL_INSTRUCTIONS,
-    "Deep olive green " + ACCENT_WALL_INSTRUCTIONS,
-    "Warm terracotta/clay " + ACCENT_WALL_INSTRUCTIONS,
+    "Warm terracotta " + ACCENT_WALL_INSTRUCTIONS,
+    "Clay " + ACCENT_WALL_INSTRUCTIONS,
+    "Deep olive green " + ACCENT_WALL_INSTRUCTIONS, 
+    "Sage green " + ACCENT_WALL_INSTRUCTIONS,
     "Beige tan " + ACCENT_WALL_INSTRUCTIONS,
+    "dusty light blue " + ACCENT_WALL_INSTRUCTIONS,
     "white"
 ]
 
@@ -77,14 +80,12 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: s
    
     furniture_color = select(FURNITURE_WOOD_TONES)
 
-    # Left: floating shelves to floor-to-ceiling look (keep depth constraints)
     left_side_furniture_options = [
-        f"{furniture_color} floating shelves - depth <= 9.75in",
+        f"{furniture_color} floating shelves - depth <= 9.75in. Filled with mid century decor and minimalistic books",
         f"{furniture_color} console table - depth <= 9.75in with mirror on top"
     ] 
 
 
-    # Right: mirrors only
     right_side_furniture_options = [
         "brass tall framed rectangular mirror - max 36in height",
         "tall thin mid century modern lamp",
