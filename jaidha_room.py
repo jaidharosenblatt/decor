@@ -9,51 +9,26 @@ import random
 from datetime import datetime
 from interior_designer import InteriorDesigner, RoomSpecs, DesignPrompt
 
-# Random variation agents for more diversity
-FURNITURE_COLORS = [
-    "warm walnut wood",
-    "rich mahogany wood", 
-    "light oak wood",
-    "dark espresso wood",
-    "natural bamboo",
-    "whitewashed wood",
-    "black lacquered wood",
-    "golden teak wood",
-    "cherry wood",
-    "ash wood",
-    "maple wood",
-    "birch wood"
-]
-
-# Explicit wall treatment presets (deterministic per iteration)
-WALL_TREATMENT_PRESETS = [
-    "Slim picture-frame moulding painted same matte greige as the wall — Parisian-inspired, subtle and modern.",
-    "Floor-to-ceiling grid paneling with slim battens, painted light warm gray in matte finish — structured and architectural.",
-    "Vertical wood slat paneling in natural walnut, extending floor-to-ceiling — warm, mid-century texture.",
-    "Soft limewash in warm off-white with subtle tonal movement — refined and designer feel.",
-    "Two-tone treatment with lower wall painted warm taupe and upper wall light neutral — adds depth and balance.",
-    "Navy blue vertical battens with satin finish, paired with natural oak shelving — bold, modern contrast.",
-    "Vertical beadboard paneling painted matte white — casual, clean texture.",
-    "Textured plaster in clay tone — organic, Mediterranean-inspired softness.",
-    "Mixed treatment: walnut wood slats on lower half, painted greige upper half — layered and cozy."
+# Tightened palettes and presets
+FURNITURE_WOOD_TONES = [
+    "mid walnut wood - neutral brown - matte finish"
 ]
 
 RUG_STYLES = [
-    "geometric mid-century modern rug",
-    "natural woven jute/sisal rug",
-    "Persian/Oriental style rug",
-    "abstract contemporary rug",
-    "vintage kilim rug",
-    "minimalist solid color rug",
-    "Indian style rug with traditional patterns",
-    "Moroccan style rug with geometric designs",
-    "Turkish style rug with floral motifs",
-    "Scandinavian style rug with simple patterns",
-    "Bohemian style rug with eclectic patterns",
-    "Modern abstract rug with bold colors",
-    "Traditional Indian dhurrie rug",
-    "Persian Tabriz style rug",
-    "Moroccan Beni Ourain style rug"
+    "natural woven jute rug - light sand",
+    "subtle Persian style rug - faded warm neutrals",
+    "minimal wool flatweave - light gray"
+]
+
+WALL_TREATMENT_PRESETS = [
+    # 1
+    "Subtle picture-frame trim - slim 3/4in stiles and rails - same paint as wall - matte - 2 or 3 frames per bay - no crown - no base change.",
+    # 2
+    "Narrow vertical panels behind the fireplace only - 3in spacing - painted the same color as surrounding wall - matte - flanking bays remain plain.",
+    # 3
+    "Soft limewash in warm off-white (slight movement) on flanking bays - leave fireplace plane crisp white for contrast.",
+    # 4
+    "Light greige wall with a single mid-walnut shelf per side - thin profile - no additional shelving - negative space prioritized."
 ]
 
 HARD_CONSTRAINTS = """
@@ -67,7 +42,14 @@ HARD CONSTRAINTS (MUST FOLLOW):
 """
 
 NEGATIVE_PROMPTS = """
-NEGATIVE PROMPTS (DO NOT DO):
+DO NOT:
+- Do not apply more than one wall treatment per render.
+- Do not cover every wall with paneling or slats.
+- Do not use thick grid paneling, shiplap, beadboard, rustic slats, or wainscoting.
+- Do not introduce red, orange, cherry, or teak woods. Use mid walnut only.
+- Do not use glossy paint, high contrast gallery walls, or heavy clutter.
+- Do not add black bookcases or black console tables.
+- Do not add additional furniture beyond one console and two open shelves total.
 - Do not place TV above fireplace (projector only).
 - Do not move, add, or remove windows, doors, or fireplace.
 - Do not block or cover stair sconce.
@@ -75,131 +57,93 @@ NEGATIVE PROMPTS (DO NOT DO):
 - Do not block or cover vent left of fireplace.
 """
 
+STYLE_GUARDRAILS = """
+SCOPE OF CHANGE:
+- Change the wall treatment only. One treatment max.
+- Keep at least 40% of the wall surface plain.
+
+MATERIAL UNIFICATION:
+- Single wood family: mid walnut - matte. No other wood tones.
+
+OBJECT BUDGET:
+- Max 7 styled objects per side (books count as 1 group).
+- Max 1 plant per side. No gallery walls. No overlapping frames.
+
+COMPOSITION:
+- If shelves are present, use at most 2 floating shelves per side.
+- Prefer negative space around art and objects.
+"""
+
 CAMERA_PROMPT = """
 CAMERA VIEWPOINT:
-- Always show the back of the couch in the foreground.
-- Fireplace wall must be centered in the background.
+- Show the back of the grey couch centered in foreground.
+- Fireplace wall centered in background.
+- Same focal length and vantage as source. No wide angle exaggeration.
 """
 
 def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> DesignPrompt:
     """Create a deterministic prompt with controlled random diversity per iteration."""
-    # Seed randomness by variation index to keep runs deterministic
     random.seed(variation_index + 2025)
-    
-    # Deterministic selections per iteration
-    furniture_color = random.choice(FURNITURE_COLORS)
-    rug_style = random.choice(RUG_STYLES)
-    
+
+    furniture_color = FURNITURE_WOOD_TONES[0]
+    rug_style = random.choice(RUG_STYLES)  # small, safe palette
+
     base_furniture = [
-        "existing grey leather couch (MUST KEEP - do not change)",
-        "existing floors (MUST KEEP - do not change)",
-        "grey couch MUST face the projector at the top of the room"
+        "existing grey leather couch - keep exactly as is",
+        "existing floors - keep exactly as is",
+        "grey couch faces the projector"
     ]
-    
-    furniture_variations = [
-        f"{furniture_color} coffee table",
-        f"{furniture_color} accent chairs with wooden arms",
-        f"{furniture_color} side table",
-        f"{furniture_color} bookshelf",
-        f"{furniture_color} console table",
-        f"{furniture_color} floor lamp base",
-        f"{furniture_color} mirror frame"
+
+    # tightly scoped and consistent with mid-century
+    furniture_requirements = base_furniture + [
+        f"{furniture_color} coffee table - simple rectangular - thin legs",
+        f"{furniture_color} console table - left bay only - depth <= 9.75in",
+        "one pair of mid-century armchairs - light tan leather or oatmeal fabric",
+        rug_style,
+        "one brass framed round mirror max 30in",
+        "one floor lamp with fabric shade - warm white bulb",
+        "a few ceramic objects in matte white - no bright colors"
     ]
-    selected_furniture = random.sample(furniture_variations, 3)
-    
-    furniture_requirements = base_furniture + selected_furniture + [
-        f"{rug_style}",
-        "built-in shelving with styled objects and art (not cluttered)",
-        "natural woven textures",
-        "brass framed mirror",
-        "floor lamp",
-        "natural materials (wood, woven, linen, wool)",
-        "wall-mounted elements (vary: plants, artwork, shelves, lighting)"
-    ]
-    
+
     additional_notes = f"""
-    CRITICAL REQUIREMENTS - MUST FOLLOW EXACTLY:
-    
-    EXACT ROOM DIMENSIONS (DO NOT MODIFY):
-    Living room
-    - Left side 55.5 in
-    - Accent depth 9.75in
-    - Right of fireplace: 55in to stair case, 38in to light
-    - 107in tall
-    - Left of sliding door 46.5in
-    - Right of sliding door 46.5in
-    - Back sofa wall 106in
-    - 168in sliding glass wall
-    
+    CRITICAL REQUIREMENTS:
+    - Use the exact room geometry and the measurements listed below. Do not alter architecture.
+
+    EXACT ROOM DIMENSIONS:
+    - Left bay depth 9.75in max
+    - Right side furniture 18in max depth
+    - 55.5in left bay width
+    - 55in to staircase on right, 38in to sconce
+    - 106in back sofa wall, 168in sliding door wall
+
     {HARD_CONSTRAINTS}
-    
+
     WALL TREATMENT - VARIATION {variation_index + 1}:
     {wall_treatment}
-    
-    FURNITURE COLOR - VARIATION {variation_index + 1}:
-    Use {furniture_color} for wooden furniture pieces
-    
-    RUG STYLE - VARIATION {variation_index + 1}:
-    {rug_style}
-    
+
+    MATERIAL AND COLOR RULES:
+    - Walls: soft warm gray or off-white, matte.
+    - Wood: {furniture_color}. Absolutely no red/orange wood.
+    - Metals: small brass accents only.
+
+    {STYLE_GUARDRAILS}
     {NEGATIVE_PROMPTS}
-    
     {CAMERA_PROMPT}
-    
-    DESIGN STYLE - WARM + COOL BALANCE:
-    - Mix warm leathers/wood (tan chairs, walnut cabinets, natural textures) with cool neutrals (grey couches, white walls)
-    - This keeps the space from feeling cold or sterile
-    
-    MID-CENTURY MODERN INFLUENCE:
-    - Clean lines, low-slung furniture
-    - Accent chairs with wooden arms
-    - Geometric rugs
-    - Occasional retro vibes
-    
-    CURATED COMFORT:
-    - Shelving with objects/art styled but not cluttered
-    - Rugs that ground the space and add warmth without overpowering
-    - Natural materials (wood, woven, linen, wool)
-    
-    LIGHT & CONTRAST PLAY:
-    - White walls + dark floors = bold backdrop
-    - Break this up with warm wood cabinetry, built-ins, or furniture
-    
-    MIX OF MODERN & CLASSIC:
-    - Transitional balance — not one strict style
-    - Some rooms lean modern (sleek fireplace, built-in shelving)
-    - Others have hint of traditional (brass framed mirrors, patterned rugs)
-    
-    MUST PRESERVE EXACTLY:
-    - Existing grey leather couch (do not change or replace)
-    - Existing floors (do not change or replace)
-    - Room dimensions and proportions (do not make room bigger or smaller)
-    - All architectural features and room layout
-    - Couch positioning facing projector
-    
-    HANDLE ASYMMETRY:
-    - Room is asymmetrical - respect the uneven layout
-    - Left side: 55.5 inches, Right side: different measurements
-    - Sliding door sides: 46.5 inches each (symmetrical)
-    - Fireplace area: 55 inches to staircase, 38 inches to light
-    - Do not force symmetry - work with the natural asymmetrical layout
-    - Furniture placement should respect the uneven room proportions
-    - Wall treatments should balance the asymmetry without forcing perfect symmetry
-    
-    VARIATION FOCUS - WALL FURNITURE:
-    Vary the furniture on the walls based on:
-    - Material: wood, metal, glass, woven, ceramic
-    - Furniture type: plants, side tables, lamps, bookshelves, artwork, mirrors, decorative objects
-    - Style: mid-century modern, contemporary, vintage, eclectic
-    - Color: warm woods, cool metals, natural textures, bold accents
-    
-    Generate a photorealistic interior design that shows proper furniture placement, accurate lighting, textures, and realistic perspective while maintaining the exact room dimensions and proportions.
+
+    DESIGN INTENT:
+    - Quiet, modern, and elevated. Subtle detail over bold patterns.
+    - Prioritize negative space. Avoid visual heaviness.
+    - Styling should feel airy and uncluttered.
+
+    MUST PRESERVE:
+    - Existing couch, floors, openings, fireplace, window and door positions.
+    - Vent left of fireplace remains visible.
     """
-    
+
     return DesignPrompt(
-        style="mid-century modern",
-        color_scheme="warm leathers and wood with cool neutrals",
-        mood="curated comfort with light and contrast play",
+        style="quiet modern with mid-century influence",
+        color_scheme="soft warm grays, white, mid walnut, brass accents",
+        mood="calm, airy, refined, comfortable",
         furniture_requirements=furniture_requirements,
         additional_notes=additional_notes
     )
@@ -217,7 +161,7 @@ async def main():
     current_room_paths = glob.glob("current/*")
     print(f"Found {len(current_room_paths)} current room images")
     
-    # Deterministic: one variation per wall treatment preset
+    # Deterministic: one variation per wall treatment preset (now 4 cleaner options)
     num_variations = len(WALL_TREATMENT_PRESETS)
     prompts = [create_dynamic_prompt(i, WALL_TREATMENT_PRESETS[i]) for i in range(num_variations)]
     
@@ -231,4 +175,4 @@ async def main():
     print(f"\n✅ Generated {len(variations)} variations!")
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    asyncio.run(main())
