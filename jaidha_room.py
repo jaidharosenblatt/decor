@@ -12,7 +12,8 @@ from interior_designer import InteriorDesigner
 
 # Tightened palettes and presets
 FURNITURE_WOOD_TONES = [
-    "mid walnut wood - neutral brown - matte finish"
+    "mid walnut wood - neutral brown - matte finish",
+    "light oak warm - matte finish",
 ]
 
 RUG_STYLES = [
@@ -29,9 +30,6 @@ LIGHTING_PRESETS = [
     "TIME OF DAY: Daytime. Soft overcast daylight fills the room. Window view is bright but not blown out. Track lights low, floor lamp off. White balance neutral-cool ~4500K. Keep colors true and airy.",
     "TIME OF DAY: COMPLETELY DARK NIGHT. All lights OFF. Exterior is pure black — no sky, no light sources visible through windows. Interior is dimly lit ONLY by track lights at 15% capacity. All lamps turned off"
 ]
-def pick_lighting_for(index: int) -> str:
-    # Test with completely dark lighting only
-    return LIGHTING_PRESETS[0]  # Always use completely dark
 
 # FINALISTS — unified color across fireplace bump-out and flanking planes.
 WALL_TREATMENT_PRESETS = [
@@ -147,12 +145,12 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: s
     LIGHTING & TIME OF DAY:
     {lighting}
 
+    FURNITURE:
+    {furniture_requirements}
+
     PHOTO BEHAVIOR:
     - Do not show the projector screen; keep it retracted.
     - No flash. Use naturalistic interior lighting and accurate exposure.
-    - Keep wall colors legible at night; avoid crushing shadows or heavy vignettes.
-    - For night scenes: Windows must be PURE BLACK — no light, no sky, no exterior visibility.
-    - For night scenes: Only warm interior lights illuminate the room — floor lamp and minimal track lighting.
 
     FURNITURE PLACEMENT:
     - LEFT SIDE: Floating shelves and console table only
@@ -192,7 +190,7 @@ async def main():
     
     for wall_treatment in WALL_TREATMENT_PRESETS:
         for lighting in LIGHTING_PRESETS:
-            print(f"Variation {variation_index}: Wall treatment, Completely dark lighting")
+            print(f"Variation {variation_index}: Wall treatment: {wall_treatment[:50]}..., Lighting: {lighting[:50]}...")
             prompts.append(create_dynamic_prompt(variation_index, wall_treatment, lighting))
             variation_index += 1
 
