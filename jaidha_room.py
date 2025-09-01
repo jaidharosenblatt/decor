@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Jaidha's Living Room Designer - Simple Script
+Jaidha's Living Room Designer - Finalists w/ Day+Night Alternation
 """
 
 import glob
@@ -23,11 +23,34 @@ RUG_STYLES = [
     "minimal wool flatweave - light gray"
 ]
 
-# Wall treatment palette - simplified and corrected
+# Lighting / time-of-day scenes
+LIGHTING_PRESETS = [
+    # 0 - DAY (soft/bright)
+    "TIME OF DAY: Daytime. Soft overcast daylight fills the room. Window view is bright but not blown out. Track lights low, floor lamp off. White balance neutral-cool ~4500K. Keep colors true and airy.",
+    # 1 - EVENING (lamps on)
+    "TIME OF DAY: Early evening. Exterior is dim. Floor lamp ON (2700K warm bulb), track lights dim to 30%. Subtle, cozy pools of light. Avoid heavy shadows; keep walls readable and colors accurate.",
+    # 2 - NIGHT (cozy)
+    "TIME OF DAY: Night. Exterior reads dark. Floor lamp ON (2700K), a second small table lamp or sconce may glow (2700K). Track lights 15–25%. No harsh contrast; maintain gentle, even exposure.",
+    # 3 - DUSK (balanced)
+    "TIME OF DAY: Dusk/blue hour. Exterior slightly darker than interior. Lamps ON warm 2700K, pleasant contrast with cool window. Keep the overall scene bright enough to evaluate wall color."
+]
+
+def pick_lighting_for(index: int) -> str:
+    # Simple, repeatable cycle: day, evening, night, dusk, then repeat
+    return LIGHTING_PRESETS[index % len(LIGHTING_PRESETS)]
+
+# FINALISTS — unified color across fireplace bump-out and flanking planes.
 WALL_TREATMENT_PRESETS = [
-    "Muted terracotta fireplace accent wall - extends fully into stairwell plane - all other walls crisp white - color is earthy clay, desaturated, not pink or saturated.",
-    "Light greige fireplace accent wall - extends fully into stairwell plane - all other walls crisp white.",
-    "Soft off-white limewash fireplace accent wall - extends fully into stairwell plane - subtle tonal movement, all other walls crisp white."
+    "Apricot terracotta accent — light, airy, earthy clay — desaturated (not pink) — EXTENDS FULLY into stairwell plane — fireplace bump-out SAME COLOR.",
+    "Light mushroom greige accent — warm stone taupe — EXTENDS FULLY into stairwell plane — fireplace bump-out SAME COLOR.",
+    "Dusty sage green accent — muted, gray-leaning sage kept light — EXTENDS FULLY into stairwell plane — fireplace bump-out SAME COLOR.",
+    "Pale blue-gray accent — soft faded denim tone — EXTENDS FULLY into stairwell plane — fireplace bump-out SAME COLOR.",
+    "Light olive accent — muted olive a touch deeper than sage but still bright — EXTENDS FULLY into stairwell plane — fireplace bump-out SAME COLOR.",
+    "Pale mushroom (stone taupe) near-off-white accent — subtle warm undertone — EXTENDS FULLY into stairwell plane — fireplace bump-out SAME COLOR.",
+    "Dusty teal accent — blue-green clearly muted to avoid saturation — EXTENDS FULLY into stairwell plane — fireplace bump-out SAME COLOR.",
+    "Clay beige accent — sandy adobe-inspired beige with muted clay undertone — EXTENDS FULLY into stairwell plane — fireplace bump-out SAME COLOR.",
+    "Warm white-on-white treatment — entire fireplace wall plane in warm off-white (no split) — EXTENDS FULLY into stairwell plane.",
+    "Simple crisp white everywhere — fireplace wall and stairwell plane in the same crisp matte white — NO accent color."
 ]
 
 HARD_CONSTRAINTS = """
@@ -81,11 +104,11 @@ CAMERA VIEWPOINT:
 """
 
 def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> DesignPrompt:
-    """Create a deterministic prompt with controlled random diversity per iteration."""
-    random.seed(variation_index + 2025)
-
+    """Create a deterministic prompt with controlled diversity per iteration."""
+    # Deterministic rug rotation (no randomness)
+    rug_style = RUG_STYLES[variation_index % len(RUG_STYLES)]
+    lighting = pick_lighting_for(variation_index)
     furniture_color = FURNITURE_WOOD_TONES[0]
-    rug_style = random.choice(RUG_STYLES)  # includes Indian rugs now
 
     base_furniture = [
         "existing grey leather couch - keep exactly as is",
@@ -93,22 +116,22 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> DesignPr
         "grey couch faces the projector"
     ]
 
-    # Add floating shelves on left and mirrors on right
+    # Left: floating shelves to floor-to-ceiling look (keep depth constraints)
     left_side_furniture = [
         f"{furniture_color} floating shelves - left bay only - depth <= 9.75in - 2 shelves max",
         f"{furniture_color} console table - left bay only - depth <= 9.75in"
     ]
-    
+
+    # Right: mirrors only
     right_side_furniture = [
         "brass framed round mirror - right side - max 30in diameter",
         "brass framed rectangular mirror - right side - max 36in height",
         f"{furniture_color} side table - right side - depth <= 18in"
     ]
 
-    # Accent chair restriction
     furniture_requirements = base_furniture + left_side_furniture + right_side_furniture + [
         f"{furniture_color} coffee table - simple rectangular - thin legs",
-        "one pair of mid-century armchairs - light tan or brown leather ONLY (absolutely no gray or fabric chairs)",
+        "one pair of mid-century armchairs - light tan or brown LEATHER ONLY (no gray or fabric chairs)",
         rug_style,
         "one floor lamp with fabric shade - warm white bulb",
         "a few ceramic objects in matte white - no bright colors"
@@ -118,8 +141,8 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> DesignPr
     CRITICAL REQUIREMENTS:
     - Use the exact room geometry and the measurements listed below. Do not alter architecture.
     - Accent wall color must EXTEND FULLY into the staircase wall plane (no sharp cutoff).
+    - Fireplace bump-out must be the SAME COLOR as the surrounding accent (no white stripe).
     - Armchairs must be brown/tan leather only. Do not render gray or fabric chairs.
-    - Muted terracotta should look like earthy clay: desaturated, soft, not pink, not saturated.
 
     EXACT ROOM DIMENSIONS:
     - Left bay depth 9.75in max
@@ -132,6 +155,14 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> DesignPr
 
     WALL TREATMENT - VARIATION {variation_index + 1}:
     {wall_treatment}
+
+    LIGHTING & TIME OF DAY:
+    {lighting}
+
+    PHOTO BEHAVIOR:
+    - Do not show the projector screen; keep it retracted.
+    - No flash. Use naturalistic interior lighting and accurate exposure.
+    - Keep wall colors legible at night; avoid crushing shadows or heavy vignettes.
 
     FURNITURE PLACEMENT:
     - LEFT SIDE: Floating shelves and console table only
@@ -150,7 +181,7 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> DesignPr
     DESIGN INTENT:
     - Quiet, modern, and elevated. Subtle detail over bold patterns.
     - Prioritize negative space. Avoid visual heaviness.
-    - Styling should feel airy and uncluttered.
+    - Styling should feel airy and uncluttered in both day and night lighting.
 
     MUST PRESERVE:
     - Existing couch, floors, openings, fireplace, window and door positions.
@@ -166,7 +197,7 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> DesignPr
     )
 
 async def main():
-    print("🎨 Jaidha's Living Room Designer")
+    print("🎨 Jaidha's Living Room Designer — Finalists")
     print("=" * 50)
     designer = InteriorDesigner()
     room_specs = RoomSpecs(
@@ -177,11 +208,10 @@ async def main():
     )
     current_room_paths = glob.glob("current/*")
     print(f"Found {len(current_room_paths)} current room images")
-    
-    # Deterministic: one variation per wall treatment preset (now 3 simplified options)
+
     num_variations = len(WALL_TREATMENT_PRESETS)
     prompts = [create_dynamic_prompt(i, WALL_TREATMENT_PRESETS[i]) for i in range(num_variations)]
-    
+
     variations, output_dir = await designer.generate_variations(
         current_room_paths=current_room_paths,
         room_specs=room_specs,
