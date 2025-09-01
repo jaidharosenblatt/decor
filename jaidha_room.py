@@ -60,35 +60,30 @@ RUG_STYLES = [
     "Moroccan Beni Ourain style rug"
 ]
 
-async def main():
-    """Generate design variations for Jaidha's living room"""
-    print("🎨 Jaidha's Living Room Designer")
-    print("=" * 50)
-    
-    # Initialize designer
-    designer = InteriorDesigner()
-    
-    # Room specs
-    room_specs = RoomSpecs(
-        width=14.0,  # Sliding glass wall: 168" = 14'
-        length=8.83,  # Back sofa wall: 106" = 8.83'
-        height=9.0,   # 107" = 8.92'
-        room_type="living room"
-    )
-    
-    # Get current room images
-    current_room_paths = glob.glob("current/*")
-    print(f"Found {len(current_room_paths)} current room images")
-    
-    # Generate variations with random diversity
-    variations, output_dir = await designer.generate_variations(
-        current_room_paths=current_room_paths,
-        room_specs=room_specs,
-        design_prompt=None,  # We'll create dynamic prompts
-        num_variations=10
-    )
-    
-    print(f"\n✅ Generated {len(variations)} variations!")
+HARD_CONSTRAINTS = """
+HARD CONSTRAINTS (MUST FOLLOW):
+- Couch must be fixed on the 106" wall, facing the projector.
+- Must not block stairs, stair rail, or stair opening.
+- Leave vent left of fireplace visible.
+- Maintain at least 36" walkway from stairs to sliding door.
+- Keep all furniture at least 8" clear of sliding door track.
+- Left bay furniture depth must be ≤9.75"; right side furniture ≤18".
+"""
+
+NEGATIVE_PROMPTS = """
+NEGATIVE PROMPTS (DO NOT DO):
+- Do not place TV above fireplace (projector only).
+- Do not move, add, or remove windows, doors, or fireplace.
+- Do not block or cover stair sconce.
+- Do not cover sliding door.
+- Do not block or cover vent left of fireplace.
+"""
+
+CAMERA_PROMPT = """
+CAMERA VIEWPOINT:
+- Always show the back of the couch in the foreground.
+- Fireplace wall must be centered in the background.
+"""
 
 def create_dynamic_prompt(variation_index: int) -> DesignPrompt:
     """Create a dynamic prompt with random variations for more diversity"""
@@ -144,16 +139,7 @@ def create_dynamic_prompt(variation_index: int) -> DesignPrompt:
     - Back sofa wall 106in
     - 168in sliding glass wall
     
-    ROOM LAYOUT - CRITICAL:
-    - Top part of room has a PROJECTOR - grey couch MUST face this projector
-    - Grey leather couch positioning is FIXED - do not change its location or orientation
-    - Couch must be positioned to view the projector screen
-    - Camera/viewpoint should show the BACK of the grey couch facing the projector
-    - We should see the back of the couch in the foreground, with the projector area in the background
-    
-    DO NOT CHANGE ANY ROOM DIMENSIONS OR PROPORTIONS
-    Keep the room exactly the same size and shape
-    Maintain all existing architectural features and proportions
+    {HARD_CONSTRAINTS}
     
     WALL TREATMENT - VARIATION {variation_index + 1}:
     {wall_treatment}
@@ -163,6 +149,10 @@ def create_dynamic_prompt(variation_index: int) -> DesignPrompt:
     
     RUG STYLE - VARIATION {variation_index + 1}:
     {rug_style}
+    
+    {NEGATIVE_PROMPTS}
+    
+    {CAMERA_PROMPT}
     
     DESIGN STYLE - WARM + COOL BALANCE:
     - Mix warm leathers/wood (tan chairs, walnut cabinets, natural textures) with cool neutrals (grey couches, white walls)
@@ -221,6 +211,29 @@ def create_dynamic_prompt(variation_index: int) -> DesignPrompt:
         furniture_requirements=furniture_requirements,
         additional_notes=additional_notes
     )
+
+async def main():
+    print("🎨 Jaidha's Living Room Designer")
+    print("=" * 50)
+    designer = InteriorDesigner()
+    room_specs = RoomSpecs(
+        width=14.0,
+        length=8.83,
+        height=9.0,
+        room_type="living room"
+    )
+    current_room_paths = glob.glob("current/*")
+    print(f"Found {len(current_room_paths)} current room images")
+    num_variations = 10
+    prompts = [create_dynamic_prompt(i) for i in range(num_variations)]
+    variations, output_dir = await designer.generate_variations(
+        current_room_paths=current_room_paths,
+        room_specs=room_specs,
+        design_prompt=None,  # We'll use the prompts list
+        num_variations=num_variations,
+        prompts=prompts
+    )
+    print(f"\n✅ Generated {len(variations)} variations!")
 
 if __name__ == "__main__":
     asyncio.run(main()) 

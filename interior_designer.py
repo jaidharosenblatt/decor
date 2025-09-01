@@ -120,7 +120,8 @@ This is variation {variation_index + 1}. Make it unique and distinctive.
                                  room_specs: RoomSpecs,
                                  design_prompt: DesignPrompt = None,
                                  num_variations: int = 3,
-                                 output_dir: str = None) -> tuple[List[Image.Image], str]:
+                                 output_dir: str = None,
+                                 prompts: list = None) -> tuple[List[Image.Image], str]:
         """Generate multiple design variations"""
         print(f"Generating {num_variations} design variations...")
         
@@ -143,8 +144,9 @@ This is variation {variation_index + 1}. Make it unique and distinctive.
         # Create tasks for parallel execution
         async def generate_with_usage(i):
             # Use dynamic prompt if provided, otherwise use the static one
-            if design_prompt is None:
-                # Import the dynamic prompt function
+            if prompts is not None:
+                prompt = self.create_prompt(room_specs, prompts[i], i)
+            elif design_prompt is None:
                 from jaidha_room import create_dynamic_prompt
                 prompt = self.create_prompt(room_specs, create_dynamic_prompt(i), i)
             else:
@@ -202,15 +204,8 @@ This is variation {variation_index + 1}. Make it unique and distinctive.
         # Display total usage summary
         total_tokens = total_input_tokens + total_output_tokens
         if total_tokens > 0:
-            # Calculate costs with correct pricing
-            # Input: $0.000075 per 1K tokens
-            # Output: $30 per 1M tokens = $0.03 per 1K tokens (image output tokenized at 1290 tokens per image)
             input_cost = (total_input_tokens / 1000) * 0.000075
-            
-            # For image generation, use flat 1290 tokens per image output
-            # Since we're generating images, use the flat rate for all variations
             output_cost = (len(generated_images) * 1290 / 1000) * 0.03
-            
             total_cost = input_cost + output_cost
             
             print(f"\n📊 Total Usage Summary:")
