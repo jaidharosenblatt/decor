@@ -23,27 +23,11 @@ RUG_STYLES = [
     "minimal wool flatweave - light gray"
 ]
 
+# Wall treatment palette - simplified and corrected
 WALL_TREATMENT_PRESETS = [
-    # 1
-    "Subtle picture-frame trim - slim 3/4in stiles and rails - same paint as wall - matte - 2 or 3 frames per bay - no crown - no base change.",
-    # 2
-    "Narrow vertical panels behind the fireplace only - 3in spacing - painted the same color as surrounding wall - matte - flanking bays remain plain.",
-    # 3
-    "Soft limewash in warm off-white (slight movement) on flanking bays - leave fireplace plane crisp white for contrast.",
-    # 4
-    "Light greige wall with a single mid-walnut shelf per side - thin profile - no additional shelving - negative space prioritized.",
-    # 5
-    "Fireplace accent wall painted deep navy blue - all other walls crisp white - fireplace wall only gets the color treatment.",
-    # 6
-    "Fireplace accent wall painted warm terracotta - all other walls crisp white - fireplace wall only gets the color treatment.",
-    # 7
-    "Fireplace accent wall painted sage green - all other walls crisp white - fireplace wall only gets the color treatment.",
-    # 8
-    "Fireplace accent wall painted charcoal gray - all other walls crisp white - fireplace wall only gets the color treatment.",
-    # 9
-    "Fireplace accent wall painted warm taupe - all other walls crisp white - fireplace wall only gets the color treatment.",
-    # 10
-    "Fireplace accent wall painted dusty rose - all other walls crisp white - fireplace wall only gets the color treatment."
+    "Muted terracotta fireplace accent wall - extends fully into stairwell plane - all other walls crisp white - color is earthy clay, desaturated, not pink or saturated.",
+    "Light greige fireplace accent wall - extends fully into stairwell plane - all other walls crisp white.",
+    "Soft off-white limewash fireplace accent wall - extends fully into stairwell plane - subtle tonal movement, all other walls crisp white."
 ]
 
 HARD_CONSTRAINTS = """
@@ -121,10 +105,10 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> DesignPr
         f"{furniture_color} side table - right side - depth <= 18in"
     ]
 
-    # tightly scoped and consistent with mid-century
+    # Accent chair restriction
     furniture_requirements = base_furniture + left_side_furniture + right_side_furniture + [
         f"{furniture_color} coffee table - simple rectangular - thin legs",
-        "one pair of mid-century armchairs - light tan leather or oatmeal fabric",
+        "one pair of mid-century armchairs - light tan or brown leather ONLY (absolutely no gray or fabric chairs)",
         rug_style,
         "one floor lamp with fabric shade - warm white bulb",
         "a few ceramic objects in matte white - no bright colors"
@@ -133,6 +117,9 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> DesignPr
     additional_notes = f"""
     CRITICAL REQUIREMENTS:
     - Use the exact room geometry and the measurements listed below. Do not alter architecture.
+    - Accent wall color must EXTEND FULLY into the staircase wall plane (no sharp cutoff).
+    - Armchairs must be brown/tan leather only. Do not render gray or fabric chairs.
+    - Muted terracotta should look like earthy clay: desaturated, soft, not pink, not saturated.
 
     EXACT ROOM DIMENSIONS:
     - Left bay depth 9.75in max
@@ -191,7 +178,7 @@ async def main():
     current_room_paths = glob.glob("current/*")
     print(f"Found {len(current_room_paths)} current room images")
     
-    # Deterministic: one variation per wall treatment preset (now 10 options)
+    # Deterministic: one variation per wall treatment preset (now 3 simplified options)
     num_variations = len(WALL_TREATMENT_PRESETS)
     prompts = [create_dynamic_prompt(i, WALL_TREATMENT_PRESETS[i]) for i in range(num_variations)]
     
