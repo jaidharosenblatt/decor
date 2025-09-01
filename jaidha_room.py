@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 import glob
 import asyncio
-import random
-from datetime import datetime
-
 from interior_designer import InteriorDesigner
 
 # Tightened palettes and presets
@@ -30,7 +27,8 @@ LIGHTING_PRESETS = [
 ]
 
 ACCENT_WALL_INSTRUCTIONS = """
-Should be a unified color across fireplace bump-out and extend all the way to the staircase wall.
+accent wall color that must EXTEND FULLY into the staircase wall plane (no sharp cutoff). Fireplace bump-out must be the SAME COLOR as the surrounding accent (no white stripe).
+
 """
 
 # FINALISTS — unified color across fireplace bump-out and flanking planes.
@@ -54,36 +52,15 @@ HARD CONSTRAINTS (MUST FOLLOW):
 
 NEGATIVE_PROMPTS = """
 DO NOT:
-- Do not apply more than one wall treatment per render.
-- Do not cover every wall with paneling or slats.
-- Do not use thick grid paneling, shiplap, beadboard, rustic slats, or wainscoting.
-- Do not introduce red, orange, cherry, or teak woods. Use mid walnut only.
 - Do not use glossy paint, high contrast gallery walls, or heavy clutter.
-- Do not add black bookcases or black console tables.
-- Do not add additional furniture beyond one console and two open shelves total.
 - Do not place TV above fireplace (projector only).
 - Do not move, add, or remove windows, doors, or fireplace.
 - Do not block or cover stair sconce.
 - Do not cover sliding door.
 - Do not block or cover vent left of fireplace.
+- Do not block the entrance to the staircase.
 """
 
-STYLE_GUARDRAILS = """
-SCOPE OF CHANGE:
-- Change the wall treatment only. One treatment max.
-- Keep at least 40% of the wall surface plain.
-
-MATERIAL UNIFICATION:
-- Single wood family: mid walnut - matte. No other wood tones.
-
-OBJECT BUDGET:
-- Max 7 styled objects per side (books count as 1 group).
-- Max 1 plant per side. No gallery walls. No overlapping frames.
-
-COMPOSITION:
-- If shelves are present, use at most 2 floating shelves per side.
-- Prefer negative space around art and objects.
-"""
 
 CAMERA_PROMPT = """
 CAMERA VIEWPOINT:
@@ -94,43 +71,39 @@ CAMERA VIEWPOINT:
 
 def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: str) -> str:
     """Create a deterministic prompt with controlled diversity per iteration."""
-    # Deterministic rug rotation (no randomness)
-    rug_style = RUG_STYLES[variation_index % len(RUG_STYLES)]
-    furniture_color = FURNITURE_WOOD_TONES[0]
 
-    base_furniture = [
-        "existing grey leather couch - keep exactly as is",
-        "existing floors - keep exactly as is",
-        "grey couch faces the projector"
-    ]
+    def select(array:list[str]) -> str:
+        return array[variation_index % len(array)]
+   
+    furniture_color = select(FURNITURE_WOOD_TONES)
 
     # Left: floating shelves to floor-to-ceiling look (keep depth constraints)
-    left_side_furniture = [
-        f"{furniture_color} floating shelves - left bay only - depth <= 9.75in - 2 shelves max",
-        f"{furniture_color} console table - left bay only - depth <= 9.75in"
-    ]
+    left_side_furniture_options = [
+        f"{furniture_color} floating shelves - depth <= 9.75in",
+        f"{furniture_color} console table - depth <= 9.75in with mirror on top"
+    ] 
+
 
     # Right: mirrors only
-    right_side_furniture = [
-        "brass framed round mirror - right side - max 30in diameter",
-        "brass framed rectangular mirror - right side - max 36in height",
-        f"{furniture_color} side table - right side - depth <= 18in"
+    right_side_furniture_options = [
+        "brass tall framed rectangular mirror - max 36in height",
+        "tall thin mid century modern lamp",
+        "tall thin olive tree in mid century modern pot"
     ]
 
-    furniture_requirements = base_furniture + left_side_furniture + right_side_furniture + [
-        f"{furniture_color} coffee table - simple rectangular - thin legs",
-        "one pair of mid-century armchairs - light tan or brown LEATHER ONLY (no gray or fabric chairs)",
-        rug_style,
-        "one floor lamp with fabric shade - warm white bulb",
-        "a few ceramic objects in matte white - no bright colors"
+    accent_chair_options = [
+        "brown leather accent chair",
+        "green leather accent chair",
+        "forrest green boucle accent chair",
+        "velvet bronze accent chair"
     ]
+
+    
 
     additional_notes = f"""
     CRITICAL REQUIREMENTS:
     - Use the exact room geometry and the measurements listed below. Do not alter architecture.
-    - Accent wall color must EXTEND FULLY into the staircase wall plane (no sharp cutoff).
-    - Fireplace bump-out must be the SAME COLOR as the surrounding accent (no white stripe).
-    - Armchairs must be brown/tan leather only. Do not render gray or fabric chairs.
+    - Keep existing couch facing the projector.
 
     EXACT ROOM DIMENSIONS:
     - Left bay depth 9.75in max
@@ -148,15 +121,28 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: s
     {lighting}
 
     FURNITURE:
-    {furniture_requirements}
+
+    Rug:
+    {select(RUG_STYLES)}
+
+    Couch:
+    - existing grey leather couch facing the projector
+
+    Fireplace wall:
+    Left bay (left of fireplace):
+    {select(left_side_furniture_options)}
+    Right bay (right of fireplace):
+    {select(right_side_furniture_options)}
+
+    Accent chair:
+    Placed to the right of the couch on the rug
+    {select(accent_chair_options)}
 
     PHOTO BEHAVIOR:
     - Do not show the projector screen; keep it retracted.
     - No flash. Use naturalistic interior lighting and accurate exposure.
 
     FURNITURE PLACEMENT:
-    - LEFT SIDE: Floating shelves and console table only
-    - RIGHT SIDE: Mirrors and side table only
     - Keep furniture within depth limits (left ≤9.75in, right ≤18in)
 
     MATERIAL AND COLOR RULES:
@@ -164,7 +150,6 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: s
     - Wood: {furniture_color}. Absolutely no red/orange wood.
     - Metals: small brass accents only.
 
-    {STYLE_GUARDRAILS}
     {NEGATIVE_PROMPTS}
     {CAMERA_PROMPT}
 
