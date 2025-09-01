@@ -7,7 +7,8 @@ import glob
 import asyncio
 import random
 from datetime import datetime
-from interior_designer import InteriorDesigner, RoomSpecs, DesignPrompt
+
+from interior_designer import InteriorDesigner
 
 # Tightened palettes and presets
 FURNITURE_WOOD_TONES = [
@@ -26,7 +27,7 @@ RUG_STYLES = [
 # Lighting / time-of-day scenes
 LIGHTING_PRESETS = [
     "TIME OF DAY: Daytime. Soft overcast daylight fills the room. Window view is bright but not blown out. Track lights low, floor lamp off. White balance neutral-cool ~4500K. Keep colors true and airy.",
-    "TIME OF DAY: COMPLETELY DARK NIGHT. All lights OFF. Exterior is pure black — no sky, no light sources visible through windows. Interior is lit ONLY by track lights and any lamps"
+    "TIME OF DAY: COMPLETELY DARK NIGHT. All lights OFF. Exterior is pure black — no sky, no light sources visible through windows. Interior is dimly lit ONLY by track lights at 15% capacity. All lamps turned off"
 ]
 def pick_lighting_for(index: int) -> str:
     # Test with completely dark lighting only
@@ -89,7 +90,7 @@ CAMERA VIEWPOINT:
 - For day scenes: Naturalistic interior lighting with accurate exposure.
 """
 
-def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: str) -> DesignPrompt:
+def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: str) -> str:
     """Create a deterministic prompt with controlled diversity per iteration."""
     # Deterministic rug rotation (no randomness)
     rug_style = RUG_STYLES[variation_index % len(RUG_STYLES)]
@@ -177,24 +178,11 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: s
     - Vent left of fireplace remains visible.
     """
 
-    return DesignPrompt(
-        style="quiet modern with mid-century influence",
-        color_scheme="soft warm grays, white, mid walnut, brass accents",
-        mood="calm, airy, refined, comfortable",
-        furniture_requirements=furniture_requirements,
-        additional_notes=additional_notes
-    )
+    return additional_notes
 
 async def main():
     print("🎨 Jaidha's Living Room Designer — Testing Completely Dark")
     print("=" * 50)
-    designer = InteriorDesigner()
-    room_specs = RoomSpecs(
-        width=14.0,
-        length=8.83,
-        height=9.0,
-        room_type="living room"
-    )
     current_room_paths = glob.glob("current/*")
     print(f"Found {len(current_room_paths)} current room images")
 
@@ -211,10 +199,9 @@ async def main():
     num_variations = len(prompts)
     print(f"Generating {num_variations} variations...")
 
+    designer = InteriorDesigner()
     variations, output_dir = await designer.generate_variations(
         current_room_paths=current_room_paths,
-        room_specs=room_specs,
-        design_prompt=None,
         num_variations=num_variations,
         prompts=prompts
     )

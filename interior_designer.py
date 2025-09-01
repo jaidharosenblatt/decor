@@ -17,23 +17,6 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-@dataclass
-class RoomSpecs:
-    """Room specifications and measurements"""
-    width: float
-    length: float
-    height: float
-    room_type: str = "living room"
-
-@dataclass
-class DesignPrompt:
-    """Design prompt with style and requirements"""
-    style: str
-    color_scheme: str
-    mood: str
-    furniture_requirements: List[str]
-    additional_notes: str = ""
-
 class InteriorDesigner:
     """Simple interior designer for Jaidha's living room"""
     
@@ -55,25 +38,6 @@ class InteriorDesigner:
             return image
         except Exception as e:
             raise ValueError(f"Failed to load image {image_path}: {e}")
-    
-    def create_prompt(self, room_specs: RoomSpecs, design_prompt: DesignPrompt, variation_index: int) -> str:
-        """Create the design prompt for a variation"""
-        furniture_str = ", ".join(design_prompt.furniture_requirements)
-        
-        prompt = f"""
-Create a photorealistic interior design for a {room_specs.room_type} with dimensions {room_specs.width}' x {room_specs.length}' x {room_specs.height}' high.
-
-Design Style: {design_prompt.style}
-Color Scheme: {design_prompt.color_scheme}
-Mood: {design_prompt.mood}
-
-Required Furniture: {furniture_str}
-
-{design_prompt.additional_notes}
-
-This is variation {variation_index + 1}. Make it unique and distinctive.
-"""
-        return prompt.strip()
     
     def log_usage_info(self, response, variation_num: int):
         """Log token usage and estimated cost for the API request"""
@@ -117,8 +81,6 @@ This is variation {variation_index + 1}. Make it unique and distinctive.
     
     async def generate_variations(self, 
                                  current_room_paths: List[str],
-                                 room_specs: RoomSpecs,
-                                 design_prompt: DesignPrompt = None,
                                  num_variations: int = 3,
                                  output_dir: str = None,
                                  prompts: list = None) -> tuple[List[Image.Image], str]:
@@ -142,15 +104,12 @@ This is variation {variation_index + 1}. Make it unique and distinctive.
                 print(f"Warning: Could not load image {path}: {e}")
         
         # Create tasks for parallel execution
-        async def generate_with_usage(i):
+        async def generate_with_usage(prompt:str, i:int):
             # Use dynamic prompt if provided, otherwise use the static one
             if prompts is not None:
-                prompt = self.create_prompt(room_specs, prompts[i], i)
-            elif design_prompt is None:
-                from jaidha_room import create_dynamic_prompt
-                prompt = self.create_prompt(room_specs, create_dynamic_prompt(i), i)
+                prompt = prompt
             else:
-                prompt = self.create_prompt(room_specs, design_prompt, i)
+                raise ValueError("No prompts provided")
             
             contents = [prompt] + current_room_images[:3]  # Up to 3 images
             
@@ -160,7 +119,7 @@ This is variation {variation_index + 1}. Make it unique and distinctive.
             )
             return i, response
         
-        tasks = [generate_with_usage(i) for i in range(num_variations)]
+        tasks = [generate_with_usage(prompt, i) for i, prompt in enumerate(prompts)]
         
         # Execute all tasks in parallel
         print("Starting parallel generation...")
