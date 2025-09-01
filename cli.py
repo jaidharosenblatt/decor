@@ -5,6 +5,7 @@ CLI interface for the Interior Designer
 
 import argparse
 import sys
+import asyncio
 from pathlib import Path
 from interior_designer import InteriorDesigner, RoomSpecs, DesignPrompt
 
@@ -69,7 +70,7 @@ def validate_image_paths(image_paths):
             print(f"Warning: Image file not found: {path}")
     return valid_paths
 
-def main():
+async def main():
     """Main CLI function"""
     args = parse_arguments()
     
@@ -117,7 +118,7 @@ def main():
             print(f"Inspiration images: {len(inspiration_paths)}")
         
         # Generate variations
-        variations = designer.generate_design_variations(
+        variations = await designer.generate_design_variations(
             current_room_paths=current_room_paths,
             inspiration_paths=inspiration_paths,
             room_specs=room_specs,
@@ -138,4 +139,4 @@ def main():
         sys.exit(1)
 
 if __name__ == "__main__":
-    main() 
+    asyncio.run(main()) 

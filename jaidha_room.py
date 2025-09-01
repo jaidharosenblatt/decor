@@ -5,9 +5,10 @@ Tailored Interior Designer for Jaidha's Living Room
 
 import os
 import glob
+import asyncio
 from interior_designer import InteriorDesigner, RoomSpecs, DesignPrompt
 
-def jaidha_living_room():
+async def jaidha_living_room():
     """Generate design variations for Jaidha's specific living room"""
     print("🎨 Interior Designer - Jaidha's Living Room")
     print("=" * 60)
@@ -161,7 +162,7 @@ def jaidha_living_room():
     # Use single image approach - just one current room photo
     single_image = current_room_paths[0] if current_room_paths else None
     
-    variations = designer.generate_design_variations(
+    variations = await designer.generate_design_variations(
         current_room_paths=[single_image] if single_image else [],  # Single image only
         inspiration_paths=[],  # No inspiration images for now
         room_specs=room_specs,
@@ -178,4 +179,4 @@ def jaidha_living_room():
     print(f"Individual files: {output_dir}/design_variation_01.png, {output_dir}/design_variation_02.png, {output_dir}/design_variation_03.png")
 
 if __name__ == "__main__":
-    jaidha_living_room() 
+    asyncio.run(jaidha_living_room()) 

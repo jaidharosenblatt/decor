@@ -7,6 +7,7 @@ import os
 import base64
 import json
 import random
+import asyncio
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass
@@ -153,7 +154,7 @@ Make this variation {variation_index + 1} of {len(self.style_variations)} with a
 """
         return prompt.strip()
     
-    def generate_design_variation(self, current_room_images: List[Image.Image], 
+    async def generate_design_variation(self, current_room_images: List[Image.Image], 
                                 inspiration_images: List[Image.Image],
                                 room_specs: RoomSpecs, 
                                 design_prompt: DesignPrompt,
@@ -176,8 +177,8 @@ Make this variation {variation_index + 1} of {len(self.style_variations)} with a
             for i, img in enumerate(inspiration_images[:2]):
                 contents.append(img)
             
-            # Generate content using Gemini - following official docs exactly
-            response = self.client.models.generate_content(
+            # Generate content using Gemini async - following official docs exactly
+            response = await self.client.aio.models.generate_content(
                 model=self.model,
                 contents=contents,
             )
@@ -197,14 +198,14 @@ Make this variation {variation_index + 1} of {len(self.style_variations)} with a
             print(f"Error generating variation {variation_index + 1}: {e}")
             return None
     
-    def generate_design_variations(self, 
+    async def generate_design_variations(self, 
                                  current_room_paths: List[str],
                                  inspiration_paths: List[str],
                                  room_specs: RoomSpecs,
                                  design_prompt: DesignPrompt,
                                  num_variations: int = 8) -> List[Image.Image]:
-        """Generate multiple design variations"""
-        print(f"Generating {num_variations} design variations...")
+        """Generate multiple design variations in parallel"""
+        print(f"Generating {num_variations} design variations in parallel...")
         
         # Load images
         current_room_images = []
@@ -223,20 +224,29 @@ Make this variation {variation_index + 1} of {len(self.style_variations)} with a
             except Exception as e:
                 print(f"Warning: Could not load image {path}: {e}")
         
-        generated_images = []
-        
+        # Create tasks for parallel execution
+        tasks = []
         for i in range(num_variations):
-            print(f"Generating variation {i + 1}/{num_variations}...")
-            
-            image = self.generate_design_variation(
+            task = self.generate_design_variation(
                 current_room_images, inspiration_images, room_specs, design_prompt, i
             )
-            
-            if image:
-                generated_images.append(image)
+            tasks.append(task)
+        
+        # Execute all tasks in parallel
+        print("Starting parallel generation...")
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        generated_images = []
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                print(f"Failed to generate variation {i + 1}: {result}")
+            elif result:
+                generated_images.append(result)
                 # Save each variation as it's generated
-                output_path = f"design_variation_{i + 1:02d}.png"
-                image.save(output_path)
+                output_path = f"output/design_variation_{i + 1:02d}.png"
+                # Ensure output directory exists
+                os.makedirs("output", exist_ok=True)
+                result.save(output_path)
                 print(f"Saved {output_path}")
             else:
                 print(f"Failed to generate variation {i + 1}")
@@ -315,13 +325,13 @@ def main():
     ]
     
     # Generate variations
-    variations = designer.generate_design_variations(
+    variations = asyncio.run(designer.generate_design_variations(
         current_room_paths=current_room_paths,
         inspiration_paths=inspiration_paths,
         room_specs=room_specs,
         design_prompt=design_prompt,
         num_variations=8
-    )
+    ))
     
     # Save grid
     designer.save_variations_grid(variations)
