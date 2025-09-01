@@ -15,6 +15,9 @@ FURNITURE_WOOD_TONES = [
 ]
 
 RUG_STYLES = [
+    "Indian dhurrie rug in deep red with traditional patterns",
+    "Indian dhurrie rug in forest green with geometric motifs",
+    "Indian dhurrie rug in warm beige with subtle patterns",
     "natural woven jute rug - light sand",
     "subtle Persian style rug - faded warm neutrals",
     "minimal wool flatweave - light gray"
@@ -28,7 +31,19 @@ WALL_TREATMENT_PRESETS = [
     # 3
     "Soft limewash in warm off-white (slight movement) on flanking bays - leave fireplace plane crisp white for contrast.",
     # 4
-    "Light greige wall with a single mid-walnut shelf per side - thin profile - no additional shelving - negative space prioritized."
+    "Light greige wall with a single mid-walnut shelf per side - thin profile - no additional shelving - negative space prioritized.",
+    # 5
+    "Fireplace accent wall painted deep navy blue - all other walls crisp white - fireplace wall only gets the color treatment.",
+    # 6
+    "Fireplace accent wall painted warm terracotta - all other walls crisp white - fireplace wall only gets the color treatment.",
+    # 7
+    "Fireplace accent wall painted sage green - all other walls crisp white - fireplace wall only gets the color treatment.",
+    # 8
+    "Fireplace accent wall painted charcoal gray - all other walls crisp white - fireplace wall only gets the color treatment.",
+    # 9
+    "Fireplace accent wall painted warm taupe - all other walls crisp white - fireplace wall only gets the color treatment.",
+    # 10
+    "Fireplace accent wall painted dusty rose - all other walls crisp white - fireplace wall only gets the color treatment."
 ]
 
 HARD_CONSTRAINTS = """
@@ -86,7 +101,7 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> DesignPr
     random.seed(variation_index + 2025)
 
     furniture_color = FURNITURE_WOOD_TONES[0]
-    rug_style = random.choice(RUG_STYLES)  # small, safe palette
+    rug_style = random.choice(RUG_STYLES)  # includes Indian rugs now
 
     base_furniture = [
         "existing grey leather couch - keep exactly as is",
@@ -94,13 +109,23 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> DesignPr
         "grey couch faces the projector"
     ]
 
+    # Add floating shelves on left and mirrors on right
+    left_side_furniture = [
+        f"{furniture_color} floating shelves - left bay only - depth <= 9.75in - 2 shelves max",
+        f"{furniture_color} console table - left bay only - depth <= 9.75in"
+    ]
+    
+    right_side_furniture = [
+        "brass framed round mirror - right side - max 30in diameter",
+        "brass framed rectangular mirror - right side - max 36in height",
+        f"{furniture_color} side table - right side - depth <= 18in"
+    ]
+
     # tightly scoped and consistent with mid-century
-    furniture_requirements = base_furniture + [
+    furniture_requirements = base_furniture + left_side_furniture + right_side_furniture + [
         f"{furniture_color} coffee table - simple rectangular - thin legs",
-        f"{furniture_color} console table - left bay only - depth <= 9.75in",
         "one pair of mid-century armchairs - light tan leather or oatmeal fabric",
         rug_style,
-        "one brass framed round mirror max 30in",
         "one floor lamp with fabric shade - warm white bulb",
         "a few ceramic objects in matte white - no bright colors"
     ]
@@ -121,8 +146,13 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> DesignPr
     WALL TREATMENT - VARIATION {variation_index + 1}:
     {wall_treatment}
 
+    FURNITURE PLACEMENT:
+    - LEFT SIDE: Floating shelves and console table only
+    - RIGHT SIDE: Mirrors and side table only
+    - Keep furniture within depth limits (left ≤9.75in, right ≤18in)
+
     MATERIAL AND COLOR RULES:
-    - Walls: soft warm gray or off-white, matte.
+    - Walls: soft warm gray or off-white, matte (unless accent wall specified).
     - Wood: {furniture_color}. Absolutely no red/orange wood.
     - Metals: small brass accents only.
 
@@ -161,7 +191,7 @@ async def main():
     current_room_paths = glob.glob("current/*")
     print(f"Found {len(current_room_paths)} current room images")
     
-    # Deterministic: one variation per wall treatment preset (now 4 cleaner options)
+    # Deterministic: one variation per wall treatment preset (now 10 options)
     num_variations = len(WALL_TREATMENT_PRESETS)
     prompts = [create_dynamic_prompt(i, WALL_TREATMENT_PRESETS[i]) for i in range(num_variations)]
     
