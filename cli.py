@@ -6,6 +6,7 @@ CLI interface for the Interior Designer
 import argparse
 import sys
 import asyncio
+from datetime import datetime
 from pathlib import Path
 from interior_designer import InteriorDesigner, RoomSpecs, DesignPrompt
 
@@ -55,8 +56,10 @@ Examples:
     # Output
     parser.add_argument("--variations", type=int, default=8, 
                        help="Number of variations to generate (default: 8)")
-    parser.add_argument("--output-dir", default=".", 
-                       help="Output directory for generated images (default: current directory)")
+    parser.add_argument("--output-dir", default=None, 
+                       help="Output directory for generated images (default: timestamped folder)")
+    parser.add_argument("--no-timestamp", action="store_true",
+                       help="Disable timestamped output folders")
     
     return parser.parse_args()
 
@@ -78,9 +81,18 @@ async def main():
     current_room_paths = validate_image_paths(args.current_room_images)
     inspiration_paths = validate_image_paths(args.inspiration_images)
     
-    # Create output directory if it doesn't exist
-    output_dir = Path(args.output_dir)
-    output_dir.mkdir(exist_ok=True)
+    # Create output directory
+    if args.output_dir:
+        output_dir = Path(args.output_dir)
+    elif args.no_timestamp:
+        output_dir = Path("output")
+    else:
+        # Create timestamped output directory
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        output_dir = Path(f"output/{timestamp}")
+    
+    output_dir.mkdir(parents=True, exist_ok=True)
+    print(f"📁 Output directory: {output_dir}")
     
     try:
         # Initialize designer
@@ -123,7 +135,8 @@ async def main():
             inspiration_paths=inspiration_paths,
             room_specs=room_specs,
             design_prompt=design_prompt,
-            num_variations=args.variations
+            num_variations=args.variations,
+            output_dir=str(output_dir)
         )
         
         # Save grid

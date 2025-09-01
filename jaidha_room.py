@@ -6,6 +6,7 @@ Tailored Interior Designer for Jaidha's Living Room
 import os
 import glob
 import asyncio
+from datetime import datetime
 from interior_designer import InteriorDesigner, RoomSpecs, DesignPrompt
 
 async def jaidha_living_room():
@@ -15,6 +16,12 @@ async def jaidha_living_room():
     
     # Initialize designer
     designer = InteriorDesigner()
+    
+    # Create timestamped output directory
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    output_dir = f"output/{timestamp}"
+    os.makedirs(output_dir, exist_ok=True)
+    print(f"📁 Output directory: {output_dir}")
     
     # Jaidha's specific room measurements (converted to feet)
     room_specs = RoomSpecs(
@@ -155,10 +162,6 @@ async def jaidha_living_room():
     # Generate multiple variations focusing on wall furniture
     print("Generating 3 design variations focusing on wall furniture...")
     
-    # Create output directory
-    output_dir = "output"
-    os.makedirs(output_dir, exist_ok=True)
-    
     # Use single image approach - just one current room photo
     single_image = current_room_paths[0] if current_room_paths else None
     
@@ -167,10 +170,11 @@ async def jaidha_living_room():
         inspiration_paths=[],  # No inspiration images for now
         room_specs=room_specs,
         design_prompt=design_prompt,
-        num_variations=3  # Generate 3 variations
+        num_variations=3,  # Generate 3 variations
+        output_dir=output_dir  # Pass the timestamped output directory
     )
     
-    # Save grid to output directory
+    # Save grid to timestamped output directory
     grid_path = os.path.join(output_dir, "jaidha_living_room_variations.png")
     designer.save_variations_grid(variations, grid_path)
     

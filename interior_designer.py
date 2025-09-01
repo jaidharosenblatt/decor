@@ -203,7 +203,8 @@ Make this variation {variation_index + 1} of {len(self.style_variations)} with a
                                  inspiration_paths: List[str],
                                  room_specs: RoomSpecs,
                                  design_prompt: DesignPrompt,
-                                 num_variations: int = 8) -> List[Image.Image]:
+                                 num_variations: int = 8,
+                                 output_dir: str = "output") -> List[Image.Image]:
         """Generate multiple design variations in parallel"""
         print(f"Generating {num_variations} design variations in parallel...")
         
@@ -243,9 +244,9 @@ Make this variation {variation_index + 1} of {len(self.style_variations)} with a
             elif result:
                 generated_images.append(result)
                 # Save each variation as it's generated
-                output_path = f"output/design_variation_{i + 1:02d}.png"
+                output_path = f"{output_dir}/design_variation_{i + 1:02d}.png"
                 # Ensure output directory exists
-                os.makedirs("output", exist_ok=True)
+                os.makedirs(output_dir, exist_ok=True)
                 result.save(output_path)
                 print(f"Saved {output_path}")
             else:
