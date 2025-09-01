@@ -1,39 +1,30 @@
 #!/usr/bin/env python3
 """
-Tailored Interior Designer for Jaidha's Living Room
+Jaidha's Living Room Designer - Simple Script
 """
 
-import os
 import glob
 import asyncio
 from datetime import datetime
 from interior_designer import InteriorDesigner, RoomSpecs, DesignPrompt
 
-async def jaidha_living_room():
-    """Generate design variations for Jaidha's specific living room"""
-    print("🎨 Interior Designer - Jaidha's Living Room")
-    print("=" * 60)
+async def main():
+    """Generate design variations for Jaidha's living room"""
+    print("🎨 Jaidha's Living Room Designer")
+    print("=" * 50)
     
     # Initialize designer
     designer = InteriorDesigner()
     
-    # Create timestamped output directory
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    output_dir = f"output/{timestamp}"
-    os.makedirs(output_dir, exist_ok=True)
-    print(f"📁 Output directory: {output_dir}")
-    
-    # Jaidha's specific room measurements (converted to feet)
+    # Room specs
     room_specs = RoomSpecs(
         width=14.0,  # Sliding glass wall: 168" = 14'
         length=8.83,  # Back sofa wall: 106" = 8.83'
-        height=9.0,   # Rounded from 107" = 8.92'
-        window_count=1,  # Large sliding glass wall
-        door_count=1,    # Assuming one main entry
+        height=9.0,   # 107" = 8.92'
         room_type="living room"
     )
     
-    # Jaidha's specific design preferences
+    # Design prompt
     design_prompt = DesignPrompt(
         style="mid-century modern",
         color_scheme="warm leathers and wood with cool neutrals",
@@ -144,43 +135,24 @@ async def jaidha_living_room():
         """
     )
     
-    # Get all images using glob
+    # Get current room images
     current_room_paths = glob.glob("current/*")
-    items_paths = glob.glob("items/*")
-    inspiration_paths = glob.glob("inspo/*")
+    print(f"Found {len(current_room_paths)} current room images")
     
-    print(f"Room: {room_specs.room_type}")
-    print(f"Dimensions: {room_specs.width}' x {room_specs.length}' x {room_specs.height}'")
-    print(f"Style: {design_prompt.style}")
-    print(f"Colors: {design_prompt.color_scheme}")
-    print(f"Mood: {design_prompt.mood}")
-    print(f"Current room images: {len(current_room_paths)}")
-    print(f"Items images: {len(items_paths)}")
-    print(f"Inspiration images: {len(inspiration_paths)}")
-    print()
-    
-    # Generate multiple variations focusing on wall furniture
-    print("Generating 3 design variations focusing on wall furniture...")
-    
-    # Use single image approach - just one current room photo
-    single_image = current_room_paths[0] if current_room_paths else None
-    
-    variations = await designer.generate_design_variations(
-        current_room_paths=[single_image] if single_image else [],  # Single image only
-        inspiration_paths=[],  # No inspiration images for now
+    # Generate variations
+    variations, output_dir = await designer.generate_variations(
+        current_room_paths=current_room_paths,
         room_specs=room_specs,
         design_prompt=design_prompt,
-        num_variations=3,  # Generate 3 variations
-        output_dir=output_dir  # Pass the timestamped output directory
+        num_variations=3
     )
     
-    # Save grid to timestamped output directory
-    grid_path = os.path.join(output_dir, "jaidha_living_room_variations.png")
-    designer.save_variations_grid(variations, grid_path)
+    # Save grid
+    if variations:
+        grid_path = f"{output_dir}/jaidha_living_room_variations.png"
+        designer.save_grid(variations, grid_path)
     
     print(f"\n✅ Generated {len(variations)} variations!")
-    print(f"Check '{output_dir}/jaidha_living_room_variations.png' for the overview")
-    print(f"Individual files: {output_dir}/design_variation_01.png, {output_dir}/design_variation_02.png, {output_dir}/design_variation_03.png")
 
 if __name__ == "__main__":
-    asyncio.run(jaidha_living_room()) 
+    asyncio.run(main()) 
