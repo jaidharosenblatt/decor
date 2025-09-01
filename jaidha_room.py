@@ -28,9 +28,9 @@ LIGHTING_PRESETS = [
     # 0 - DAY (soft/bright)
     "TIME OF DAY: Daytime. Soft overcast daylight fills the room. Window view is bright but not blown out. Track lights low, floor lamp off. White balance neutral-cool ~4500K. Keep colors true and airy.",
     # 1 - EVENING (lamps on)
-    "TIME OF DAY: Early evening. Exterior is dim. Floor lamp ON (2700K warm bulb), track lights dim to 30%. Subtle, cozy pools of light. Avoid heavy shadows; keep walls readable and colors accurate.",
+    "TIME OF DAY: Early evening. Completely dark outside, windows show night sky or blackness — no daylight visible. Floor lamp ON (2700K warm bulb), track lights dim to 30%. Warm indoor lights casting cozy glows and soft shadows. Expose for interior, not exterior — windows should read as dark voids.",
     # 2 - NIGHT (cozy)
-    "TIME OF DAY: Night. Exterior reads dark. Floor lamp ON (2700K), a second small table lamp or sconce may glow (2700K). Track lights 15–25%. No harsh contrast; maintain gentle, even exposure.",
+    "TIME OF DAY: Night. Completely dark outside, windows show night sky or blackness — no daylight visible. Floor lamp ON (2700K), a second small table lamp or sconce may glow (2700K). Track lights 15–25%. Warm indoor lights casting cozy glows and soft shadows. Expose for interior, not exterior — windows should read as dark voids.",
     # 3 - DUSK (balanced)
     "TIME OF DAY: Dusk/blue hour. Exterior slightly darker than interior. Lamps ON warm 2700K, pleasant contrast with cool window. Keep the overall scene bright enough to evaluate wall color."
 ]
@@ -101,6 +101,8 @@ CAMERA VIEWPOINT:
 - Show the back of the grey couch centered in foreground.
 - Fireplace wall centered in background.
 - Same focal length and vantage as source. No wide angle exaggeration.
+- For night scenes: Expose for interior lighting, not exterior — windows should read as dark voids.
+- For day scenes: Naturalistic interior lighting with accurate exposure.
 """
 
 def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> DesignPrompt:
