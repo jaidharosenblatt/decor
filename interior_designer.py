@@ -12,7 +12,8 @@ from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass
 from io import BytesIO
 
-import google.genai as genai
+from google import genai
+from google.genai import types
 from PIL import Image
 from dotenv import load_dotenv
 
@@ -57,27 +58,29 @@ class InteriorDesigner:
             raise ValueError("GEMINI_API_KEY environment variable is required")
         
         # Configure Gemini client
-        genai.configure(api_key=self.api_key)
+        self.client = genai.Client()
         self.model = "gemini-2.5-flash-image-preview"
         
         # Style variations for generating diverse designs
         self.style_variations = [
-            "modern minimalist", "cozy bohemian", "scandinavian", "industrial chic",
-            "traditional elegant", "mid-century modern", "coastal", "rustic farmhouse",
-            "contemporary luxury", "eclectic", "zen minimalism", "art deco",
-            "vintage industrial", "tropical modern", "nordic hygge", "mediterranean"
+            "mid-century modern", "modern minimalist", "transitional", "scandinavian", 
+            "industrial chic", "traditional elegant", "cozy bohemian", "coastal", 
+            "rustic farmhouse", "contemporary luxury", "eclectic", "zen minimalism", 
+            "art deco", "vintage industrial", "tropical modern", "nordic hygge"
         ]
         
         self.color_variations = [
-            "neutral grays and whites", "warm earth tones", "cool blues and greens",
-            "bold jewel tones", "soft pastels", "monochromatic", "complementary colors",
-            "analogous color scheme", "high contrast black and white", "warm neutrals"
+            "warm leathers and wood with cool neutrals", "neutral grays and whites", 
+            "warm earth tones", "cool blues and greens", "bold jewel tones", 
+            "soft pastels", "monochromatic", "complementary colors", 
+            "analogous color scheme", "high contrast black and white"
         ]
         
         self.mood_variations = [
-            "relaxing and peaceful", "energetic and vibrant", "sophisticated and elegant",
-            "cozy and inviting", "bright and airy", "dramatic and bold", "serene and calm",
-            "warm and welcoming", "modern and sleek", "romantic and intimate"
+            "curated comfort with light and contrast play", "relaxing and peaceful", 
+            "energetic and vibrant", "sophisticated and elegant", "cozy and inviting", 
+            "bright and airy", "dramatic and bold", "serene and calm", 
+            "warm and welcoming", "modern and sleek"
         ]
     
     def load_image(self, image_path: str) -> Image.Image:
@@ -164,33 +167,24 @@ Make this variation {variation_index + 1} of {len(self.style_variations)} with a
             
             # Add current room images (up to 3)
             for i, img in enumerate(current_room_images[:3]):
-                contents.append({
-                    "inline_data": {
-                        "mime_type": "image/png",
-                        "data": self.encode_image(img)
-                    }
-                })
+                contents.append(img)
             
             # Add inspiration images (up to 2)
             for i, img in enumerate(inspiration_images[:2]):
-                contents.append({
-                    "inline_data": {
-                        "mime_type": "image/png",
-                        "data": self.encode_image(img)
-                    }
-                })
+                contents.append(img)
             
             # Generate content using Gemini
-            response = genai.generate_content(
+            response = self.client.models.generate_content(
                 model=self.model,
-                contents=contents
+                contents=contents,
             )
             
             # Extract generated image
-            for part in response.candidates[0].content.parts:
-                if hasattr(part, 'inline_data') and part.inline_data:
-                    image_data = base64.b64decode(part.inline_data.data)
-                    return Image.open(BytesIO(image_data))
+            if response.candidates and response.candidates[0].content:
+                for part in response.candidates[0].content.parts:
+                    if hasattr(part, 'inline_data') and part.inline_data:
+                        image_data = base64.b64decode(part.inline_data.data)
+                        return Image.open(BytesIO(image_data))
             
             print(f"Warning: No image generated for variation {variation_index + 1}")
             return None
