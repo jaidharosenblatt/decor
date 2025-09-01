@@ -25,21 +25,17 @@ FURNITURE_COLORS = [
     "birch wood"
 ]
 
-WALL_TREATMENTS = [
-    "white walls",
-    "warm off-white/cream walls",
-    "light gray walls", 
-    "soft beige walls",
-    "light blue-gray walls",
-    "warm taupe walls",
-    "white walls with one accent wall in deep navy blue",
-    "white walls with one accent wall in emerald green",
-    "white walls with one accent wall in warm terracotta",
-    "white walls with one accent wall in charcoal gray",
-    "white walls with one accent wall in sage green",
-    "white walls with one accent wall in burgundy",
-    "white walls with one accent wall in mustard yellow",
-    "white walls with one accent wall in dusty rose"
+# Explicit wall treatment presets (deterministic per iteration)
+WALL_TREATMENT_PRESETS = [
+    "Slim picture-frame moulding painted same matte greige as the wall — Parisian-inspired, subtle and modern.",
+    "Floor-to-ceiling grid paneling with slim battens, painted light warm gray in matte finish — structured and architectural.",
+    "Vertical wood slat paneling in natural walnut, extending floor-to-ceiling — warm, mid-century texture.",
+    "Soft limewash in warm off-white with subtle tonal movement — refined and designer feel.",
+    "Two-tone treatment with lower wall painted warm taupe and upper wall light neutral — adds depth and balance.",
+    "Navy blue vertical battens with satin finish, paired with natural oak shelving — bold, modern contrast.",
+    "Vertical beadboard paneling painted matte white — casual, clean texture.",
+    "Textured plaster in clay tone — organic, Mediterranean-inspired softness.",
+    "Mixed treatment: walnut wood slats on lower half, painted greige upper half — layered and cozy."
 ]
 
 RUG_STYLES = [
@@ -85,22 +81,21 @@ CAMERA VIEWPOINT:
 - Fireplace wall must be centered in the background.
 """
 
-def create_dynamic_prompt(variation_index: int) -> DesignPrompt:
-    """Create a dynamic prompt with random variations for more diversity"""
+def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> DesignPrompt:
+    """Create a deterministic prompt with controlled random diversity per iteration."""
+    # Seed randomness by variation index to keep runs deterministic
+    random.seed(variation_index + 2025)
     
-    # Randomly select variations
+    # Deterministic selections per iteration
     furniture_color = random.choice(FURNITURE_COLORS)
-    wall_treatment = random.choice(WALL_TREATMENTS)
     rug_style = random.choice(RUG_STYLES)
     
-    # Create variation-specific furniture requirements
     base_furniture = [
         "existing grey leather couch (MUST KEEP - do not change)",
         "existing floors (MUST KEEP - do not change)",
         "grey couch MUST face the projector at the top of the room"
     ]
     
-    # Add random furniture variations
     furniture_variations = [
         f"{furniture_color} coffee table",
         f"{furniture_color} accent chairs with wooden arms",
@@ -110,9 +105,7 @@ def create_dynamic_prompt(variation_index: int) -> DesignPrompt:
         f"{furniture_color} floor lamp base",
         f"{furniture_color} mirror frame"
     ]
-    
-    # Randomly select 3-4 furniture pieces
-    selected_furniture = random.sample(furniture_variations, random.randint(3, 4))
+    selected_furniture = random.sample(furniture_variations, 3)
     
     furniture_requirements = base_furniture + selected_furniture + [
         f"{rug_style}",
@@ -124,7 +117,6 @@ def create_dynamic_prompt(variation_index: int) -> DesignPrompt:
         "wall-mounted elements (vary: plants, artwork, shelves, lighting)"
     ]
     
-    # Create dynamic additional notes
     additional_notes = f"""
     CRITICAL REQUIREMENTS - MUST FOLLOW EXACTLY:
     
@@ -224,12 +216,15 @@ async def main():
     )
     current_room_paths = glob.glob("current/*")
     print(f"Found {len(current_room_paths)} current room images")
-    num_variations = 10
-    prompts = [create_dynamic_prompt(i) for i in range(num_variations)]
+    
+    # Deterministic: one variation per wall treatment preset
+    num_variations = len(WALL_TREATMENT_PRESETS)
+    prompts = [create_dynamic_prompt(i, WALL_TREATMENT_PRESETS[i]) for i in range(num_variations)]
+    
     variations, output_dir = await designer.generate_variations(
         current_room_paths=current_room_paths,
         room_specs=room_specs,
-        design_prompt=None,  # We'll use the prompts list
+        design_prompt=None,
         num_variations=num_variations,
         prompts=prompts
     )
