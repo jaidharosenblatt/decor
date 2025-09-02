@@ -9,6 +9,14 @@ FURNITURE_WOOD_TONES = [
     "light oak warm - matte finish",
 ]
 
+RUG_STYLES = [
+    "Indian dhurrie rug in deep red with traditional patterns",
+    "Indian dhurrie rug in forest green with geometric motifs",
+    "Indian dhurrie rug in warm beige with subtle patterns",
+    "natural woven jute rug - light sand",
+    "subtle Persian style rug - faded warm neutrals",
+    "minimal wool flatweave - light gray"
+]
 
 # Lighting / time-of-day scenes
 LIGHTING_PRESETS = [
@@ -26,7 +34,13 @@ Do not paint the right wall
 
 # FINALISTS — unified color across fireplace bump-out and flanking planes.
 WALL_TREATMENT_PRESETS = [
-    "beige (brown and not gray)" + ACCENT_WALL_INSTRUCTIONS,
+    "Warm terracotta " + ACCENT_WALL_INSTRUCTIONS,
+    "Clay " + ACCENT_WALL_INSTRUCTIONS,
+    "Deep olive green " + ACCENT_WALL_INSTRUCTIONS, 
+    "Sage green " + ACCENT_WALL_INSTRUCTIONS,
+    "Beige tan " + ACCENT_WALL_INSTRUCTIONS,
+    "dusty light blue " + ACCENT_WALL_INSTRUCTIONS,
+    "white"
 ]
 
 HARD_CONSTRAINTS = """
@@ -61,6 +75,32 @@ CAMERA VIEWPOINT:
 def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: str) -> str:
     """Create a deterministic prompt with controlled diversity per iteration."""
 
+    def select(array:list[str]) -> str:
+        return array[variation_index % len(array)]
+   
+    furniture_color = select(FURNITURE_WOOD_TONES)
+
+    left_side_furniture_options = [
+        f"{furniture_color} floating shelves - depth <= 9.75in. Filled with mid century decor and minimalistic books",
+        f"{furniture_color} console table - depth <= 9.75in with mirror on top"
+    ] 
+
+
+    right_side_furniture_options = [
+        "brass tall framed rectangular mirror - max 36in height",
+        "tall thin mid century modern lamp",
+        "tall thin olive tree in mid century modern pot"
+    ]
+
+    accent_chair_options = [
+        "brown leather accent chair",
+        "green leather accent chair",
+        "forrest green boucle accent chair",
+        "velvet bronze accent chair"
+    ]
+
+    
+
     additional_notes = f"""
     CRITICAL REQUIREMENTS:
     - Use the exact room geometry and the measurements listed below. Do not alter architecture.
@@ -75,7 +115,7 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: s
 
     {HARD_CONSTRAINTS}
 
-    WALL TREATMENT
+    WALL TREATMENT - VARIATION {variation_index + 1}:
     {wall_treatment}
 
     LIGHTING & TIME OF DAY:
@@ -84,29 +124,32 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: s
     FURNITURE:
 
     Rug:
-    Mid century modern rug
-
-    On the left wall, a tall thin mid century modern lamp sits right next to the sliding door.
+    {select(RUG_STYLES)}
 
     Couch:
-    - existing grey leather couch facing the projector all the way back of the wall. the back half of the couch should be off of the rug.
+    - existing grey leather couch facing the projector
 
     Fireplace wall:
     Left bay (left of fireplace):
-    2 side by side bookshelves (use bookshelf.png) image twice. They are 75in H X 26in W X 15in D each. so in total they are 75 in (70% of the wall) and 52in (2 inch on each side)
-    
+    {select(left_side_furniture_options)}
     Right bay (right of fireplace):
-    Short hutch with a round mirror hung above it on the wall
+    {select(right_side_furniture_options)}
 
     Accent chair:
-     brown leather accent chair placed to the right of the couch on the rug facing the sliding door
-   
+    Placed to the right of the couch on the rug
+    {select(accent_chair_options)}
+
     PHOTO BEHAVIOR:
     - Do not show the projector screen; keep it retracted.
     - No flash. Use naturalistic interior lighting and accurate exposure.
 
     FURNITURE PLACEMENT:
     - Keep furniture within depth limits (left ≤9.75in, right ≤18in)
+
+    MATERIAL AND COLOR RULES:
+    - Walls: soft warm gray or off-white, matte (unless accent wall specified).
+    - Wood: {furniture_color}. Absolutely no red/orange wood.
+    - Metals: small brass accents only.
 
     {NEGATIVE_PROMPTS}
     {CAMERA_PROMPT}
@@ -125,10 +168,9 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: s
 async def main():
     print("🎨 Jaidha's Living Room Designer — Testing Completely Dark")
     print("=" * 50)
-    current_room_paths = glob.glob("current/*")
-    items = glob.glob("items/*")
+    current_room_paths = glob.glob("living_room/*")
     print(f"Found {len(current_room_paths)} current room images")
-    print(f"Found {len(items)} items images")
+
     # Generate variations using nested loops
     prompts = []
     variation_index = 0
@@ -146,8 +188,7 @@ async def main():
     variations, output_dir = await designer.generate_variations(
         current_room_paths=current_room_paths,
         num_variations=num_variations,
-        prompts=prompts,
-        items=items
+        prompts=prompts
     )
     print(f"\n✅ Generated {len(variations)} variations!")
 
