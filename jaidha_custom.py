@@ -93,7 +93,7 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: s
 
     Fireplace wall:
     Left bay (left of fireplace):
-    2 bookshelf (use bookshelf.png) image. They are 75in H X 26in W X 15in D each. so in total they are 75 in (70% of the wall) and 52in (2 inch on each side)
+    2 side by side bookshelves (use bookshelf.png) image twice. They are 75in H X 26in W X 15in D each. so in total they are 75 in (70% of the wall) and 52in (2 inch on each side)
     
     Right bay (right of fireplace):
     Short hutch with a round mirror hung above it on the wall
