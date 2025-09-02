@@ -4,54 +4,34 @@ import asyncio
 from interior_designer import InteriorDesigner
 
 
-WALL_TREATMENT_PRESETS = [
-    "classic board and batten wainscoting – tall rectangular battens evenly spaced, painted white, framed artwork hung above in a neat row",
-    "shaker-style vertical panel wainscoting – wide flat vertical planks with clean lines, semi-gloss finish",
-    "beadboard wainscoting – narrow vertical grooves running full height of panel, cottage-inspired, single large art piece centered above",
-    "picture frame molding wainscoting – rectangular boxes with subtle trim stacked across the wall",
-    "raised panel wainscoting – traditional square panels with beveled molding, slightly more formal, complemented by a gallery wall of small prints above",
-    "flat panel modern wainscoting – sleek flush panels with minimal trim, contemporary look",
-    "two-tone board and batten – lower half white, upper wall painted accent color, oversized canvas artwork adding contrast above",
-    "geometric box grid wainscoting – symmetrical square insets creating a modern checkerboard pattern",
-    "half-wall tongue and groove planks – horizontal wood slats capped with a ledge for display, artwork casually leaned against wall above",
-    "three-quarter height shaker wainscoting – taller installation reaching window sill height for drama, framed minimalist prints above"
-]
+DINING_ROOM_VARIANTS = [
+    "round walnut pedestal dining table with cream upholstered mid-century chairs – classic board and batten wainscoting painted white, sideboard in matching walnut against left wall with abstract artwork above, round jute rug grounding the space for cohesion with living room textures",
 
-DINING_ROOM_EXTRAS = [
-    "slim sideboard in warm wood with artwork above – storage and display combined",
-    "bar cabinet with fluted doors and a brass lamp on top – compact entertaining station",
-    "floating shelves with stacked ceramics and cookbooks – casual and modern",
-    "arched wall mirror with sconces on either side – adds depth and light",
-    "gallery wall of black-and-white photography – structured but personal",
-    "floor-to-ceiling built-in shelving with lower cabinets – functional and architectural",
-    "olive tree in a textured planter placed in corner – natural height and greenery",
-    "bench along one wall with upholstered cushion – extra seating and cozy feel",
-    "plate wall with mismatched ceramics – artistic and collected look",
-    "modern wall panel with integrated LED lighting – subtle glow and architectural interest"
+    "rectangular trestle dining table in rustic oak with ladder-back chairs – shaker-style vertical panel wainscoting in soft white, black metal linear chandelier overhead, sideboard with fluted doors on right wall holding plants and pottery, tying to living room shelving greenery",
+
+    "square modern dining table in dark espresso with four upholstered chairs in warm gray – beadboard wainscoting full-height painted muted sage, oversized black-and-white framed art above, tall corner olive tree softening the window wall and echoing living room greenery",
+
+    "oval tulip-base dining table with light oak top and white pedestal – picture frame molding wainscoting in white, statement pendant light cluster above, wall-mounted gallery of geometric prints to tie to modern living room shelves and round mirror for visual rhythm",
+
+    "extendable rectangular walnut dining table with six low-profile upholstered chairs – raised panel wainscoting in bright white, deep navy paint above, long sideboard on left wall with brass accents, leaning floor mirror on right wall to echo living room round mirror and expand light",
+
+    "glass-top rectangular dining table with warm wood legs and six upholstered dining chairs – flat panel modern wainscoting, wall painted warm greige to match living room fireplace wall, floating shelves mounted above buffet with ceramics and books for a seamless continuation",
+
+    "round marble-top dining table with walnut base and four beige upholstered chairs – two-tone board and batten wainscoting with white below and soft terracotta above, single oversized art canvas hung above, tall mid-century floor lamp in corner mirroring living room tripod lamp",
+
+    "rectangular dining table in natural ash with bench seating along window side and spindle-back chairs opposite – geometric box grid wainscoting in white, wall sconces flanking abstract art, built-in shelves on left wall for books and pottery continuing living room’s open shelving aesthetic",
+
+    "round pedestal dining table in espresso wood with boucle upholstered chairs – half-wall horizontal tongue-and-groove wainscoting capped with ledge, artwork leaned casually above the ledge, ceramic plates on adjacent wall echoing living room’s mix of art and organic décor",
+
+    "long rectangular dining table in walnut with six sleek mid-century chairs – three-quarter height shaker wainscoting painted soft gray, modern LED strip accent lighting embedded into right wall framing artwork, creating cohesion with the track lighting aesthetic of the living room"
 ]
 
 
-DINING_TABLE_PRESETS = [
-    "rounded pedestal dining table in medium walnut with 4 upholstered chairs – cozy, space-efficient",
-    "rectangular farmhouse dining table in warm oak with 4 ladder-back chairs – rustic yet simple",
-    "rectangular modern dining table in dark espresso with 4 upholstered chairs – clean lines, minimal look",
-    "round tulip base dining table in light oak with 4 molded chairs – mid-century modern inspired",
-    "rectangular trestle dining table in walnut with 4 cushioned side chairs – traditional and sturdy",
-    "oval pedestal dining table in rich cherry with 4 high-back chairs – elegant and transitional",
-    "square compact dining table in matte black with 4 fabric chairs – urban and contemporary",
-    "rectangular glass-top dining table with 4 wood-frame chairs – airy, modern aesthetic",
-    "round marble-top dining table with 4 upholstered chairs – refined and upscale",
-    "extendable rectangular dining table in natural oak with 4 spindle-back chairs – versatile and casual"
-]
 
-def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> str:
+def create_dynamic_prompt(variation_index: int, variation_description: str) -> str:
     """Create a deterministic prompt with controlled diversity per iteration."""
 
-    def select(array:list[str]) -> str:
-
-        return array[variation_index % len(array)]
-    dining_table = select(DINING_TABLE_PRESETS)
-    dining_room_extra = select(DINING_ROOM_EXTRAS)
+  
     additional_notes = f"""
     CRITICAL REQUIREMENTS:
     - Use the exact room geometry and the measurements listed below. Do not alter architecture.
@@ -63,14 +43,8 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> str:
     - 108 in wall parallel with kitchen, opposite from door
     - 72in wall next to door
 
-    WALL TREATMENT:
+    {variation_description}
 
-    {wall_treatment}
-
-    FURNITURE:
-    {dining_table}
-
-    {dining_room_extra}
 
     PHOTO BEHAVIOR:
     - No flash. Use naturalistic interior lighting and accurate exposure.
@@ -96,9 +70,9 @@ async def main():
     prompts = []
     variation_index = 0
     
-    for wall_treatment in WALL_TREATMENT_PRESETS:
-        print(f"Variation {variation_index}: Wall treatment: {wall_treatment[:50]}...")
-        prompts.append(create_dynamic_prompt(variation_index, wall_treatment))
+    for variation_description in DINING_ROOM_VARIANTS:
+        print(f"Variation {variation_index}: {variation_description[:50]}...")
+        prompts.append(create_dynamic_prompt(variation_index, variation_description))
         variation_index += 1
 
     num_variations = len(prompts)
