@@ -13,6 +13,7 @@ from io import BytesIO
 from google import genai
 from PIL import Image
 from dotenv import load_dotenv
+from google.genai.types import ContentListUnion
 
 # Load environment variables
 load_dotenv()
@@ -83,6 +84,7 @@ class InteriorDesigner:
                                  current_room_paths: List[str],
                                  num_variations: int = 3,
                                  output_dir: str = None,
+                                 items: List[str] = None,
                                  prompts: list = None) -> tuple[List[Image.Image], str]:
         """Generate multiple design variations"""
         print(f"Generating {num_variations} design variations...")
@@ -103,6 +105,15 @@ class InteriorDesigner:
             except Exception as e:
                 print(f"Warning: Could not load image {path}: {e}")
         
+        # Load items images
+        items_images = []
+        for path in items:
+            try:
+                img = self.load_image(path)
+                items_images.append(img)
+            except Exception as e:
+                print(f"Warning: Could not load image {path}: {e}")
+        
         # Create tasks for parallel execution
         async def generate_with_usage(prompt:str, i:int):
             # Use dynamic prompt if provided, otherwise use the static one
@@ -110,8 +121,13 @@ class InteriorDesigner:
                 prompt = prompt
             else:
                 raise ValueError("No prompts provided")
+
+            images = current_room_images + items_images
+            if len(images) > 3:
+                print(f"Warning: Too many images ({len(images)}), using only the first 3")
+                images = images[:3]
             
-            contents = [prompt] + current_room_images[:3]  # Up to 3 images
+            contents:list[ContentListUnion] = [prompt] + images
             
             response = await self.client.aio.models.generate_content(
                 model=self.model,
