@@ -188,7 +188,8 @@ async def main():
     variations, output_dir = await designer.generate_variations(
         current_room_paths=current_room_paths,
         num_variations=num_variations,
-        prompts=prompts
+        prompts=prompts,
+        items=[]
     )
     print(f"\n✅ Generated {len(variations)} variations!")
 
