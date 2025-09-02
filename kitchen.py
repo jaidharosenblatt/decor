@@ -64,6 +64,7 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> str:
     - 72in wall next to door
 
     WALL TREATMENT:
+
     {wall_treatment}
 
     FURNITURE:
@@ -77,7 +78,11 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str) -> str:
     DESIGN INTENT:
     - Mid century modern, and elevated. Subtle detail over bold patterns.
     - Prioritize negative space. Avoid visual heaviness.
+
+    NEVER
+    - Make any structural changes to the kitchen.
     """
+    
 
     return additional_notes
 
