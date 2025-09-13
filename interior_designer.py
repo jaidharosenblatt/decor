@@ -107,13 +107,7 @@ class InteriorDesigner:
 
 {prompt}"""
 
-            if len(loaded_images) > 3:
-                print(f"Warning: Too many images ({len(loaded_images)}), using only the first 3")
-                images_to_use = loaded_images[:3]
-            else:
-                images_to_use = loaded_images
-
-            contents = [enhanced_prompt] + images_to_use
+            contents = [enhanced_prompt] + loaded_images
             
             response = await self.client.aio.models.generate_content(
                 model=self.model,

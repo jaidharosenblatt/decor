@@ -20,10 +20,11 @@ Do not paint the right wall
 
 # FINALISTS — unified color across fireplace bump-out and flanking planes.
 WALL_TREATMENT_PRESETS = [
-    "1st color swatch from the 2nd image" + ACCENT_WALL_INSTRUCTIONS,
-    "2nd color swatch from the 2nd image" + ACCENT_WALL_INSTRUCTIONS,
-    "3rd color swatch from the 2nd image" + ACCENT_WALL_INSTRUCTIONS,
-    "4th color swatch from the 2nd image" + ACCENT_WALL_INSTRUCTIONS,
+    "Use the 1st color swatch (leftmost warm beige) from the paint colors image" + ACCENT_WALL_INSTRUCTIONS,
+    "Use the 2nd color swatch (medium warm tan) from the paint colors image" + ACCENT_WALL_INSTRUCTIONS,
+    "Use the 3rd color swatch (peach/salmon tone) from the paint colors image" + ACCENT_WALL_INSTRUCTIONS,
+    "Use the 4th color swatch (terracotta/rust) from the paint colors image" + ACCENT_WALL_INSTRUCTIONS,
+    "Use the 5th color swatch (sage green) from the paint colors image" + ACCENT_WALL_INSTRUCTIONS,
 ]
 
 HARD_CONSTRAINTS = """
@@ -128,12 +129,16 @@ def create_dynamic_prompt(
 async def main():
     print("🎨 Jaidha's Living Room Designer")
     print("=" * 50)
-    current_room_paths = glob.glob("current/*")
-    items = glob.glob("items/*")
-    all_images = current_room_paths + items
-    print(f"Found {len(current_room_paths)} current room images")
-    print(f"Found {len(items)} items images")
-    print(f"Total images: {len(all_images)}")
+    all_images = glob.glob("input/living_room/*")
+    print(f"Found {len(all_images)} living room images")
+
+    if not all_images:
+        print("❌ No images found in input/living_room/")
+        print("Please add your images to this directory first.")
+        return
+
+    for img in all_images:
+        print(f"  - {img}")
     # Generate variations using nested loops
     prompts = []
     variation_index = 0

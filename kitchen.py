@@ -63,8 +63,16 @@ def create_dynamic_prompt(variation_index: int, variation_description: str) -> s
 async def main():
     print("🎨 Jaidha's Kitchen Designer")
     print("=" * 50)
-    images = glob.glob("source_images/kitchen/*")
+    images = glob.glob("input/kitchen/*")
     print(f"Found {len(images)} kitchen images")
+
+    if not images:
+        print("❌ No images found in input/kitchen/")
+        print("Please add your images to this directory first.")
+        return
+
+    for img in images:
+        print(f"  - {img}")
 
     # Generate variations using nested loops
     prompts = []
