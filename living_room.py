@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-import glob
 import asyncio
+import glob
+
 from interior_designer import InteriorDesigner
 
 # Tightened palettes and presets
@@ -26,7 +27,10 @@ Do not paint the right wall
 
 # FINALISTS — unified color across fireplace bump-out and flanking planes.
 WALL_TREATMENT_PRESETS = [
-    "beige (brown and not gray)" + ACCENT_WALL_INSTRUCTIONS,
+    "1st color swatch from the 2nd image" + ACCENT_WALL_INSTRUCTIONS,
+    "2nd color swatch from the 2nd image" + ACCENT_WALL_INSTRUCTIONS,
+    "3rd color swatch from the 2nd image" + ACCENT_WALL_INSTRUCTIONS,
+    "4th color swatch from the 2nd image" + ACCENT_WALL_INSTRUCTIONS,
 ]
 
 HARD_CONSTRAINTS = """
@@ -58,13 +62,16 @@ CAMERA VIEWPOINT:
 - Same focal length and vantage as source. No wide angle exaggeration.
 """
 
-def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: str) -> str:
+
+def create_dynamic_prompt(
+    variation_index: int, wall_treatment: str, lighting: str
+) -> str:
     """Create a deterministic prompt with controlled diversity per iteration."""
 
     additional_notes = f"""
     CRITICAL REQUIREMENTS:
     - Use the exact room geometry and the measurements listed below. Do not alter architecture.
-    - Keep existing couch facing the projector. Show only the front half of the couch.
+    - Keep existing couch (5th image) facing the projector. Show only the front half of the couch.
 
     EXACT ROOM DIMENSIONS:
     - Left bay depth 9.75in max
@@ -83,8 +90,7 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: s
 
     FURNITURE:
 
-    Rug:
-    Turkish rug
+    Rug (3rd image)
 
     On the left wall, a tall thin mid century modern lamp. Lamp is 12 inches from the sliding door.
 
@@ -95,7 +101,7 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: s
 
     Fireplace wall:
     Left bay (left of fireplace):
-    5 Floating shelves 8in deep, 48 in wide (leave 10 inch gap on each side) Filled with green plants, mid century decor, and minimalistic books.
+    6 Floating shelves (4th image) 8in deep, 48 in wide (leave 10 inch gap on each side) Filled with green plants, mid century decor, and minimalistic books.
     
     Right bay (right of fireplace):
     Short hutch with a round mirror hung above it on the wall
@@ -124,6 +130,7 @@ def create_dynamic_prompt(variation_index: int, wall_treatment: str, lighting: s
 
     return additional_notes
 
+
 async def main():
     print("🎨 Jaidha's Living Room Designer — Testing Completely Dark")
     print("=" * 50)
@@ -134,11 +141,15 @@ async def main():
     # Generate variations using nested loops
     prompts = []
     variation_index = 0
-    
+
     for wall_treatment in WALL_TREATMENT_PRESETS:
         for lighting in LIGHTING_PRESETS:
-            print(f"Variation {variation_index}: Wall treatment: {wall_treatment[:50]}..., Lighting: {lighting[:50]}...")
-            prompts.append(create_dynamic_prompt(variation_index, wall_treatment, lighting))
+            print(
+                f"Variation {variation_index}: Wall treatment: {wall_treatment[:50]}..., Lighting: {lighting[:50]}..."
+            )
+            prompts.append(
+                create_dynamic_prompt(variation_index, wall_treatment, lighting)
+            )
             variation_index += 1
 
     num_variations = len(prompts)
@@ -149,9 +160,10 @@ async def main():
         current_room_paths=current_room_paths,
         num_variations=num_variations,
         prompts=prompts,
-        items=items
+        items=items,
     )
     print(f"\n✅ Generated {len(variations)} variations!")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
