@@ -13,17 +13,17 @@ LIGHTING_PRESETS = [
 ]
 
 ACCENT_WALL_INSTRUCTIONS = """
-CRITICAL PAINT AND LIGHTING INSTRUCTIONS:
-- Use the EXACT color from the paint CARDS (the small swatches), NOT the washed-out wall samples
-- Match the SATURATED, RICH appearance of the paint cards themselves
-- LIGHTING: The accent wall receives INDIRECT, WARM ambient lighting (not direct daylight)
-- Colors must appear RICH and VIBRANT like they do on the fireplace wall in the reference image
-- AVOID the pale, washed-out appearance seen on the left wall in the reference (that's from direct sunlight)
-- Use warm 3000K lighting on accent surfaces to show full color depth and vibrancy
-- Accent wall color must EXTEND FULLY into the staircase wall plane (no sharp cutoff)
-- Fireplace bump-out must be the SAME COLOR as the surrounding accent (no white stripe)
-- CRITICAL: All other walls (left wall with sliding door, right wall, etc.) must remain BRIGHT WHITE
-- Accent colors should match the DEPTH and RICHNESS as shown on the paint swatches themselves
+CRITICAL WALL PAINTING AND LIGHTING:
+- ACCENT WALL (entire fireplace wall extending to staircase):
+  * Fireplace center section: Direct light = BRIGHT accent color
+  * Staircase section: Less light = DARKER version of same accent color
+  * Must be continuous with NO sharp cutoff between sections
+  * Fireplace bump-out same color as surrounding accent (no white stripe)
+- ALL OTHER WALLS: Must remain BRIGHT WHITE
+  * Sliding door wall: WHITE
+  * Entry wall: WHITE
+  * Any other walls: WHITE
+- Use exact paint colors from reference image with proper lighting variation
 
 """
 
@@ -33,18 +33,17 @@ WALL_TREATMENT_PRESETS = [
     + ACCENT_WALL_INSTRUCTIONS,
     "Use the 2nd color swatch (medium warm tan) from the paint colors image"
     + ACCENT_WALL_INSTRUCTIONS,
-    "Use the 3rd color swatch (peach/salmon tone) from the paint colors image"
+    "Use the 3rd color swatch (warm beige) from the paint colors image"
     + ACCENT_WALL_INSTRUCTIONS,
     "Use the 4th color swatch (terracotta/rust) from the paint colors image"
     + ACCENT_WALL_INSTRUCTIONS,
     "Use the 5th color swatch (sage green) from the paint colors image"
     + ACCENT_WALL_INSTRUCTIONS,
+    "All walls must be white",
 ]
 
 HARD_CONSTRAINTS = """
 HARD CONSTRAINTS (MUST FOLLOW):
-- Couch must be fixed on the 106" wall, facing the projector, PUSHED COMPLETELY AGAINST THE WALL.
-- CRITICAL: Grey couch back must be flush against the accent wall with zero gap.
 - Must not block stairs, stair rail, or stair opening.
 - Leave vent left of fireplace visible.
 - Maintain at least 36" walkway from stairs to sliding door.
@@ -52,21 +51,31 @@ HARD CONSTRAINTS (MUST FOLLOW):
 - Left bay furniture depth must be ≤9.75"; right side furniture ≤18".
 """
 
-NEGATIVE_PROMPTS = """
-DO NOT:
-- Do not use glossy paint, high contrast gallery walls, or heavy clutter.
-- Do not place TV above fireplace (projector only).
-- Do not move, add, or remove windows, doors, or fireplace.
-- Do not block or cover stair sconce.
-- Do not cover sliding door.
-- Do not block or cover vent left of fireplace.
-- Do not block the entrance to the staircase.
+CRITICAL_DO_NOT_INSTRUCTIONS = """
+WALL COLOR MISTAKES TO AVOID:
+- DO NOT: Make accent colors pale, washed out, or barely visible
+- DO NOT: Paint the sliding door wall with accent color (must stay WHITE)
+- DO NOT: Paint the entry wall with accent color (must stay WHITE)
+- DO NOT: Leave white stripes on the fireplace bump-out
+- DO NOT: Create breaks or gaps in accent wall color continuity
+- DO NOT: Paint walls that should be white with accent color
+
+ROOM LAYOUT MISTAKES TO AVOID:
+- Do not place TV above fireplace (projector only)
+- Do not move, add, or remove windows, doors, or fireplace
+- Do not block or cover stair sconce
+- Do not cover sliding door
+- Do not block or cover vent left of fireplace
+- Do not block the entrance to the staircase
+
+STYLE MISTAKES TO AVOID:
+- Do not use glossy paint, high contrast gallery walls, or heavy clutter
 """
 
 
 CAMERA_PROMPT = """
 CAMERA VIEWPOINT:
-- Show the back of the grey couch centered in foreground.
+- View from seating area toward fireplace wall.
 - Fireplace wall centered in background.
 - Same focal length and vantage as source. No wide angle exaggeration.
 """
@@ -83,12 +92,10 @@ def create_dynamic_prompt(
     - Paint colors image: Contains 5 color swatches for accent wall selection (use EXACT colors)
     - Rug image (3. rug.png): Traditional red/burgundy ornate area rug to be placed in the room
     - Floating shelves image: Shelves for the left fireplace bay
-    - Couch image: Existing grey leather couch to keep in place
 
     CRITICAL REQUIREMENTS:
     - Use the current room images as a reference for the layout of the room. DO NOT ALTER THE LAYOUT.
     - Use the exact room geometry and the measurements listed below. Do not alter architecture.
-    - Keep existing couch facing the projector. Show only the front half of the couch.
 
     EXACT ROOM DIMENSIONS:
     - Left bay depth 9.75in max
@@ -111,27 +118,24 @@ def create_dynamic_prompt(
 
     On the left wall, a tall thin mid century modern lamp. Lamp is 12 inches from the sliding door.
 
-    Couch:
-    - existing grey leather couch facing the projector
-    - CRITICAL: the back of the couch is FLUSH AGAINST the accent wall with NO GAP
-    - the couch back is completely touching the wall, pushed all the way back
-    - back legs of couch are off of the rug
+    WALL COLORING - CRITICAL INSTRUCTIONS:
 
-    Fireplace wall:
-    Left bay (left of fireplace):
-    6 Floating shelves (use provided shelves image) 8in deep, 48 in wide (leave 10 inch gap on each side) Filled with green plants, mid century decor, and minimalistic books.
+    ACCENT WALL (MUST BE BOLD AND SATURATED):
+    - Paint the ENTIRE back wall from left bookshelf area through fireplace to staircase
+    - This includes: left bay area + fireplace center + fireplace bump-out + right bay area + staircase wall
+    - Use RICH, BOLD, SATURATED color - NOT pale or washed out
+    - Fireplace bump-out MUST be same color as surrounding accent wall (no white stripe)
+    - Color should be CONTINUOUS across all sections with no breaks
 
-    Right bay (right of fireplace):
-    Short hutch positioned DIRECTLY next to the fireplace wall (not centered in bay, but close to fireplace) with a round mirror hung above it on the wall
+    WHITE WALLS (MUST REMAIN BRIGHT WHITE):
+    - Sliding door wall (left side of room)
+    - Entry wall (right side of room)
+    - All other walls that are NOT the fireplace/back wall
 
-    Accent chairs:
-    CRITICAL CHAIR POSITIONING - READ CAREFULLY:
-    - 2 matching brown fabric swivel accent chairs positioned on EACH SIDE of the couch
-    - ORIENTATION: Each chair must be turned 45 DEGREES INWARD toward the CENTER of the couch
-    - Chairs should create a CONVERSATION CIRCLE with the couch, NOT face the fireplace/projector
-    - Think "chairs facing each other across the couch" not "all furniture facing the TV"
-    - The goal is INTIMATE CONVERSATION SEATING, not media viewing alignment
-    - Position: Adequate spacing from couch (NOT pinned against couch)
+    Furniture and Decor:
+    - Use traditional red/burgundy ornate rug from reference image
+    - Six Floating shelves in left bay filled with green plants and books
+    - Short hutch with round mirror in right bay
    
     PHOTO BEHAVIOR:
     - Do not show the projector screen; keep it retracted.
@@ -140,7 +144,7 @@ def create_dynamic_prompt(
     FURNITURE PLACEMENT:
     - Keep furniture within depth limits (left ≤9.75in, right ≤18in)
 
-    {NEGATIVE_PROMPTS}
+    {CRITICAL_DO_NOT_INSTRUCTIONS}
     {CAMERA_PROMPT}
 
     DESIGN INTENT:
@@ -148,8 +152,14 @@ def create_dynamic_prompt(
     - Prioritize negative space. Avoid visual heaviness.
 
     MUST PRESERVE:
-    - Existing couch, floors, openings, fireplace, window and door positions.
+    - Existing floors, openings, fireplace, window and door positions.
     - Vent left of fireplace remains visible.
+
+    FINAL VERIFICATION CHECKLIST:
+    1. ACCENT WALL: Entire back wall (left bay + fireplace + right bay + staircase) is BOLD and SATURATED with chosen color
+    2. WHITE WALLS: Sliding door wall and entry wall are BRIGHT WHITE
+    3. CONTINUITY: No breaks, gaps, or white stripes in accent wall color
+    4. RUG: Traditional red/burgundy ornate rug is used
     """
 
     return additional_notes
