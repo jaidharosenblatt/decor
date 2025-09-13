@@ -13,23 +13,38 @@ LIGHTING_PRESETS = [
 ]
 
 ACCENT_WALL_INSTRUCTIONS = """
-accent wall color that must EXTEND FULLY into the staircase wall plane (no sharp cutoff). Fireplace bump-out must be the SAME COLOR as the surrounding accent (no white stripe).
-Do not paint the right wall 
+CRITICAL PAINT AND LIGHTING INSTRUCTIONS:
+- Use the EXACT color from the paint CARDS (the small swatches), NOT the washed-out wall samples
+- Match the SATURATED, RICH appearance of the paint cards themselves
+- LIGHTING: The accent wall receives INDIRECT, WARM ambient lighting (not direct daylight)
+- Colors must appear RICH and VIBRANT like they do on the fireplace wall in the reference image
+- AVOID the pale, washed-out appearance seen on the left wall in the reference (that's from direct sunlight)
+- Use warm 3000K lighting on accent surfaces to show full color depth and vibrancy
+- Accent wall color must EXTEND FULLY into the staircase wall plane (no sharp cutoff)
+- Fireplace bump-out must be the SAME COLOR as the surrounding accent (no white stripe)
+- CRITICAL: All other walls (left wall with sliding door, right wall, etc.) must remain BRIGHT WHITE
+- Accent colors should match the DEPTH and RICHNESS as shown on the paint swatches themselves
 
 """
 
 # FINALISTS — unified color across fireplace bump-out and flanking planes.
 WALL_TREATMENT_PRESETS = [
-    "Use the 1st color swatch (leftmost warm beige) from the paint colors image" + ACCENT_WALL_INSTRUCTIONS,
-    "Use the 2nd color swatch (medium warm tan) from the paint colors image" + ACCENT_WALL_INSTRUCTIONS,
-    "Use the 3rd color swatch (peach/salmon tone) from the paint colors image" + ACCENT_WALL_INSTRUCTIONS,
-    "Use the 4th color swatch (terracotta/rust) from the paint colors image" + ACCENT_WALL_INSTRUCTIONS,
-    "Use the 5th color swatch (sage green) from the paint colors image" + ACCENT_WALL_INSTRUCTIONS,
+    "Use the 1st color swatch (leftmost warm beige) from the paint colors image"
+    + ACCENT_WALL_INSTRUCTIONS,
+    "Use the 2nd color swatch (medium warm tan) from the paint colors image"
+    + ACCENT_WALL_INSTRUCTIONS,
+    "Use the 3rd color swatch (peach/salmon tone) from the paint colors image"
+    + ACCENT_WALL_INSTRUCTIONS,
+    "Use the 4th color swatch (terracotta/rust) from the paint colors image"
+    + ACCENT_WALL_INSTRUCTIONS,
+    "Use the 5th color swatch (sage green) from the paint colors image"
+    + ACCENT_WALL_INSTRUCTIONS,
 ]
 
 HARD_CONSTRAINTS = """
 HARD CONSTRAINTS (MUST FOLLOW):
-- Couch must be fixed on the 106" wall, facing the projector.
+- Couch must be fixed on the 106" wall, facing the projector, PUSHED COMPLETELY AGAINST THE WALL.
+- CRITICAL: Grey couch back must be flush against the accent wall with zero gap.
 - Must not block stairs, stair rail, or stair opening.
 - Leave vent left of fireplace visible.
 - Maintain at least 36" walkway from stairs to sliding door.
@@ -63,8 +78,15 @@ def create_dynamic_prompt(
     """Create a deterministic prompt with controlled diversity per iteration."""
 
     additional_notes = f"""
+    IMAGE REFERENCES:
+    - Room layout images: Use for current room geometry and layout (DO NOT ALTER)
+    - Paint colors image: Contains 5 color swatches for accent wall selection (use EXACT colors)
+    - Rug image (3. rug.png): Traditional red/burgundy ornate area rug to be placed in the room
+    - Floating shelves image: Shelves for the left fireplace bay
+    - Couch image: Existing grey leather couch to keep in place
+
     CRITICAL REQUIREMENTS:
-    - Use the current room images (first images) as a reference for the layout of the room. DO NOT ALTER THE LAYOUT.
+    - Use the current room images as a reference for the layout of the room. DO NOT ALTER THE LAYOUT.
     - Use the exact room geometry and the measurements listed below. Do not alter architecture.
     - Keep existing couch facing the projector. Show only the front half of the couch.
 
@@ -85,24 +107,31 @@ def create_dynamic_prompt(
 
     FURNITURE:
 
-    Rug: Use the provided rug image from the item images
+    Rug: CRITICAL - Use the traditional red/burgundy ornate rug from the rug image (3. rug.png) - NOT any other rug
 
     On the left wall, a tall thin mid century modern lamp. Lamp is 12 inches from the sliding door.
 
     Couch:
     - existing grey leather couch facing the projector
-    - the back half of the couch is touching the wall
+    - CRITICAL: the back of the couch is FLUSH AGAINST the accent wall with NO GAP
+    - the couch back is completely touching the wall, pushed all the way back
     - back legs of couch are off of the rug
 
     Fireplace wall:
     Left bay (left of fireplace):
     6 Floating shelves (use provided shelves image) 8in deep, 48 in wide (leave 10 inch gap on each side) Filled with green plants, mid century decor, and minimalistic books.
-    
+
     Right bay (right of fireplace):
-    Short hutch with a round mirror hung above it on the wall
+    Short hutch positioned DIRECTLY next to the fireplace wall (not centered in bay, but close to fireplace) with a round mirror hung above it on the wall
 
     Accent chairs:
-    2 matching brown fabric accent chairs. 1 on each side of the couch. each is angled facing the couch at a 45 degree angle.
+    CRITICAL CHAIR POSITIONING - READ CAREFULLY:
+    - 2 matching brown fabric swivel accent chairs positioned on EACH SIDE of the couch
+    - ORIENTATION: Each chair must be turned 45 DEGREES INWARD toward the CENTER of the couch
+    - Chairs should create a CONVERSATION CIRCLE with the couch, NOT face the fireplace/projector
+    - Think "chairs facing each other across the couch" not "all furniture facing the TV"
+    - The goal is INTIMATE CONVERSATION SEATING, not media viewing alignment
+    - Position: Adequate spacing from couch (NOT pinned against couch)
    
     PHOTO BEHAVIOR:
     - Do not show the projector screen; keep it retracted.

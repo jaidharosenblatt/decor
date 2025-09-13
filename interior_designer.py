@@ -88,8 +88,14 @@ class InteriorDesigner:
         """Generate multiple design variations"""
         print(f"Generating {num_variations} design variations...")
 
-        os.makedirs(output_dir, exist_ok=True)
-        print(f"📁 Output directory: {output_dir}")
+        # Create timestamped subdirectory
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        timestamped_output_dir = os.path.join(output_dir, timestamp)
+        os.makedirs(timestamped_output_dir, exist_ok=True)
+        print(f"📁 Output directory: {timestamped_output_dir}")
+
+        # Store the timestamped directory for use in the inner function
+        output_dir_for_saving = timestamped_output_dir
 
         # Load all images
         loaded_images = []
@@ -144,10 +150,10 @@ class InteriorDesigner:
                 if image:
                     generated_images.append(image)
                     # Save each variation
-                    output_path = f"{output_dir}/design_variation_{i + 1:02d}.png"
+                    output_path = f"{output_dir_for_saving}/design_variation_{i + 1:02d}.png"
                     image.save(output_path)
                     print(f"Saved {output_path}")
-                    
+
                     # Track total tokens
                     if hasattr(response, 'usage_metadata'):
                         usage = response.usage_metadata
@@ -170,4 +176,4 @@ class InteriorDesigner:
             print(f"   Estimated total cost: ${total_cost:.6f}")
             print(f"   Cost per variation: ${total_cost / len(generated_images):.6f}")
         
-        return generated_images, output_dir 
+        return generated_images, output_dir_for_saving 
