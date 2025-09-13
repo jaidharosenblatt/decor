@@ -10,9 +10,9 @@ from typing import List, Optional
 from dataclasses import dataclass
 from io import BytesIO
 
-from google import genai
 from PIL import Image
 from dotenv import load_dotenv
+import google.genai as genai
 from google.genai.types import ContentListUnion
 
 # Load environment variables
@@ -80,54 +80,40 @@ class InteriorDesigner:
         except Exception as e:
             print(f"Could not log usage info: {e}")
     
-    async def generate_variations(self, 
-                                 current_room_paths: List[str],
-                                 num_variations: int = 3,
-                                 output_dir: str = None,
-                                 items: List[str] = None,
-                                 prompts: list = None) -> tuple[List[Image.Image], str]:
+    async def generate_variations(self,
+                                 images: List[str],
+                                 prompts: list,
+                                 output_dir: str,
+                                 num_variations: int = 3) -> tuple[List[Image.Image], str]:
         """Generate multiple design variations"""
         print(f"Generating {num_variations} design variations...")
-        
-        # Create timestamped output directory
-        if output_dir is None:
-            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            output_dir = f"output/{timestamp}"
+
         os.makedirs(output_dir, exist_ok=True)
         print(f"📁 Output directory: {output_dir}")
-        
-        # Load current room images
-        current_room_images = []
-        for path in current_room_paths:
+
+        # Load all images
+        loaded_images = []
+        for path in images:
             try:
                 img = self.load_image(path)
-                current_room_images.append(img)
-            except Exception as e:
-                print(f"Warning: Could not load image {path}: {e}")
-        
-        # Load items images
-        items_images = []
-        for path in items:
-            try:
-                img = self.load_image(path)
-                items_images.append(img)
+                loaded_images.append(img)
             except Exception as e:
                 print(f"Warning: Could not load image {path}: {e}")
         
         # Create tasks for parallel execution
         async def generate_with_usage(prompt:str, i:int):
-            # Use dynamic prompt if provided, otherwise use the static one
-            if prompts is not None:
-                prompt = prompt
-            else:
-                raise ValueError("No prompts provided")
+            # Add variation index and image references to prompt
+            enhanced_prompt = f"""VARIATION #{i+1}
 
-            images = current_room_images + items_images
-            if len(images) > 3:
-                print(f"Warning: Too many images ({len(images)}), using only the first 3")
-                images = images[:3]
-            
-            contents:list[ContentListUnion] = [prompt] + images
+{prompt}"""
+
+            if len(loaded_images) > 3:
+                print(f"Warning: Too many images ({len(loaded_images)}), using only the first 3")
+                images_to_use = loaded_images[:3]
+            else:
+                images_to_use = loaded_images
+
+            contents = [enhanced_prompt] + images_to_use
             
             response = await self.client.aio.models.generate_content(
                 model=self.model,

@@ -4,13 +4,6 @@ import glob
 
 from interior_designer import InteriorDesigner
 
-# Tightened palettes and presets
-FURNITURE_WOOD_TONES = [
-    "mid walnut wood - neutral brown - matte finish",
-    "light oak warm - matte finish",
-]
-
-
 # Lighting / time-of-day scenes
 LIGHTING_PRESETS = [
     """TIME OF DAY: Daytime (soft overcast).
@@ -70,8 +63,9 @@ def create_dynamic_prompt(
 
     additional_notes = f"""
     CRITICAL REQUIREMENTS:
+    - Use the current room images (first images) as a reference for the layout of the room. DO NOT ALTER THE LAYOUT.
     - Use the exact room geometry and the measurements listed below. Do not alter architecture.
-    - Keep existing couch (5th image) facing the projector. Show only the front half of the couch.
+    - Keep existing couch facing the projector. Show only the front half of the couch.
 
     EXACT ROOM DIMENSIONS:
     - Left bay depth 9.75in max
@@ -90,7 +84,7 @@ def create_dynamic_prompt(
 
     FURNITURE:
 
-    Rug (3rd image)
+    Rug: Use the provided rug image from the item images
 
     On the left wall, a tall thin mid century modern lamp. Lamp is 12 inches from the sliding door.
 
@@ -101,13 +95,13 @@ def create_dynamic_prompt(
 
     Fireplace wall:
     Left bay (left of fireplace):
-    6 Floating shelves (4th image) 8in deep, 48 in wide (leave 10 inch gap on each side) Filled with green plants, mid century decor, and minimalistic books.
+    6 Floating shelves (use provided shelves image) 8in deep, 48 in wide (leave 10 inch gap on each side) Filled with green plants, mid century decor, and minimalistic books.
     
     Right bay (right of fireplace):
     Short hutch with a round mirror hung above it on the wall
 
     Accent chairs:
-    2 matching brown leather accent chairs. 1 on each side of the couch. each is angled facing the couch at a 45 degree angle.
+    2 matching brown fabric accent chairs. 1 on each side of the couch. each is angled facing the couch at a 45 degree angle.
    
     PHOTO BEHAVIOR:
     - Do not show the projector screen; keep it retracted.
@@ -132,12 +126,14 @@ def create_dynamic_prompt(
 
 
 async def main():
-    print("🎨 Jaidha's Living Room Designer — Testing Completely Dark")
+    print("🎨 Jaidha's Living Room Designer")
     print("=" * 50)
     current_room_paths = glob.glob("current/*")
     items = glob.glob("items/*")
+    all_images = current_room_paths + items
     print(f"Found {len(current_room_paths)} current room images")
     print(f"Found {len(items)} items images")
+    print(f"Total images: {len(all_images)}")
     # Generate variations using nested loops
     prompts = []
     variation_index = 0
@@ -157,12 +153,12 @@ async def main():
 
     designer = InteriorDesigner()
     variations, output_dir = await designer.generate_variations(
-        current_room_paths=current_room_paths,
-        num_variations=num_variations,
+        images=all_images,
         prompts=prompts,
-        items=items,
+        output_dir="outputs",
+        num_variations=num_variations,
     )
-    print(f"\n✅ Generated {len(variations)} variations!")
+    print(f"\n✅ Generated {len(variations)} variations in {output_dir}!")
 
 
 if __name__ == "__main__":
